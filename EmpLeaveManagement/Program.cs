@@ -12,61 +12,105 @@ internal class EmpLeaveManagement
     static String EmpName, DateofLeave;
     static void Main(string[] args)
     {
-        bool Continue = true;
-        Console.Write("Input Employee Name: ");
-        EmpName = Console.ReadLine();
-        while (Continue)
+        bool ContinueSystem = true;
+        bool ContinueFileLeave = true;
+        while (ContinueSystem)
         {
-           
 
-            
+            Console.WriteLine("======================== EMPLOYEE LEAVE MANAGEMENT ========================");
+            Console.WriteLine("(1) File Leave \n(2) Login as Admin \n(3) Close System");
+            Console.Write("Input: ");
+            int Choice = Convert.ToInt16(Console.ReadLine());
+            Console.WriteLine();
 
-            Console.WriteLine($"Input Type of Leave: \n1. Maternity Leave ({MaternityAvailableLeave}) \n2. Paternity Leave ({PaternityAvailableLeave}) \n3. Sick Leave ({VacationAvailableLeave}) \n4. Vacation Leave ({SickAvailableLeave}) ");
-            int LeaveType = Convert.ToInt16(Console.ReadLine());
 
-            Console.Write("Input Days of Leave: ");
-            int LeaveDays = Convert.ToInt16(Console.ReadLine());
-
-            Console.Write("Date of Leave: ");
-            DateofLeave = Console.ReadLine();
-
-            String type = "";
-            switch (LeaveType)
+            if (Choice == 1)
             {
-                case 1:
-                    type = "Maternity Leave";
-                    break;
-                case 2:
-                    type = "Paternity Leave";
-                    break;
-                case 3:
-                    type = "Sick Leave";
-                    break;
-                case 4:
-                    type = "Vacation Leave";
-                    break;
+                Console.WriteLine("======================== FILE LEAVE ========================");
+
+                Console.Write("Input Employee Name: ");
+                EmpName = Console.ReadLine();
+                Console.WriteLine();
+
+                while (ContinueFileLeave)
+                {
+
+                    Console.WriteLine($"Input\t\tType of Leave\t\tAvailable Days\n(1)\t|\tMaternity Leave\t|\t{MaternityAvailableLeave} \n(2)\t|\tPaternity Leave\t|\t{PaternityAvailableLeave} \n(3)\t|\tSick Leave\t|\t{VacationAvailableLeave} \n(4)\t|\tVacation Leave\t|\t{SickAvailableLeave} ");
+                    Console.Write("Input: ");
+                    int LeaveType = Convert.ToInt16(Console.ReadLine());
+                    Console.WriteLine();
+
+                    Console.Write("Input Days of Leave: ");
+                    int LeaveDays = Convert.ToInt16(Console.ReadLine());
+                    Console.WriteLine();
+
+
+                    Console.Write("Date of Leave: ");
+                    DateofLeave = Console.ReadLine();
+                    Console.WriteLine();
+
+
+                    String type = "";
+                    switch (LeaveType)
+                    {
+                        case 1:
+                            type = "Maternity Leave";
+                            break;
+                        case 2:
+                            type = "Paternity Leave";
+                            break;
+                        case 3:
+                            type = "Sick Leave";
+                            break;
+                        case 4:
+                            type = "Vacation Leave";
+                            break;
+
+                    }
+                    TypeOfLeaves.Add(type);
+                    DaysOfLeaves.Add(LeaveDays);
+                    LeaveDates.Add(DateofLeave);
+
+
+                    CalculateAvailableLeaveDays(LeaveType, LeaveDays);
+
+
+
+
+                    Console.WriteLine("Would you like to account another leave? (y/n)");
+                    Console.Write("Input: ");
+                    string YorN = Console.ReadLine();
+                    if (YorN == "n")
+                    {
+                        ContinueFileLeave = false;
+                    }
+                }
+
+                Console.WriteLine();
 
             }
-            TypeOfLeaves.Add(type);
-            DaysOfLeaves.Add(LeaveDays);
-            LeaveDates.Add(DateofLeave);
-
-
-            CalculateAvailableLeaveDays(LeaveType, LeaveDays);
-
-
-
-
-            Console.WriteLine("Would you like to account another leave? (y/n)");
-            string YorN = Console.ReadLine();
-            if (YorN == "n")
+            else if (Choice == 2)
             {
-                Continue = false;
+                Console.WriteLine("======================== ADMIN DASHBOARD ========================");
+                Console.WriteLine("(1) View Leave History");
+                Console.Write("Input: ");
+                Choice = Convert.ToInt16(Console.ReadLine());
+
+                Console.WriteLine();
+
+                if (Choice == 1)
+                {
+                    output();
+                }
             }
+            else
+            {
+                Console.WriteLine();
+
+                Environment.Exit(0);
+            }
+
         }
-
-
-
     }
 
     static void CalculateAvailableLeaveDays(int TypeOfLeave, int Days)
@@ -77,7 +121,7 @@ internal class EmpLeaveManagement
                 if (Days <= MaternityAvailableLeave)
                 {
                     MaternityAvailableLeave -= Days;
-                    output();
+
                 }
                 else
                 {
@@ -88,7 +132,6 @@ internal class EmpLeaveManagement
                 if (Days <= PaternityAvailableLeave)
                 {
                     PaternityAvailableLeave -= Days;
-                    output();
                 }
                 else
                 {
@@ -99,7 +142,6 @@ internal class EmpLeaveManagement
                 if (Days <= SickAvailableLeave)
                 {
                     SickAvailableLeave -= Days;
-                    output();
                 }
                 else
                 {
@@ -110,7 +152,6 @@ internal class EmpLeaveManagement
                 if (Days <= VacationAvailableLeave)
                 {
                     VacationAvailableLeave -= Days;
-                    output();
                 }
                 else
                 {
@@ -127,6 +168,9 @@ internal class EmpLeaveManagement
         {
             Console.WriteLine($"Employee Name: {EmpName}, Type of Leave: {TypeOfLeaves[i]}, Days: {DaysOfLeaves[i]}, Date: {LeaveDates[i]}");
         }
+        Console.WriteLine();
+
+
     }
 
 }
