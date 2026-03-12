@@ -1,30 +1,18 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Reflection.Metadata.Ecma335;
+using System.Security.Principal;
+using EmpLeaveManagementAppModel;
+using EmpLeaveManagementAppService;
 
 internal class EmpLeaveManagement
 {
-    static int MaternityAvailableLeave = 105, PaternityAvailableLeave = 7, VacationAvailableLeave = 15, SickAvailableLeave = 15;
-    static List<String> TypeOfLeaves = new List<String>();
-    static List<int> DaysOfLeaves = new List<int>();
-    static List<String> LeaveDates = new List<String>();
-    static List<String> EmployeeNames = new List<String>();
+    static AppService EmployeeAppService = new AppService();
 
-    class Employee
-    {
-        public string Name;
-        public int MaternityLeave = 105;
-        public int PaternityLeave = 7;
-        public int VacationLeave = 15;
-        public int SickLeave = 15;
-    }
-    static List<Employee> Employees = new List<Employee>();
-    
     static void Main(string[] args)
     {
-        bool continueSystem = true;
-        bool continueFileLeave = true;
-        bool continueAsAdmin = true;
+        bool continueSystem = true, continueFileLeave = true, continueAsAdmin = true;
+
         while (continueSystem)
         {
 
@@ -38,27 +26,36 @@ internal class EmpLeaveManagement
                 Console.Write("Input Employee Name: ");
                 String EmpName = Console.ReadLine();
                 Console.WriteLine();
-                Employee emp = new Employee();
-                emp.Name = EmpName;
-                Employees.Add(emp);
+
+                Employee Emp;
+                if (EmployeeAppService.isNameExist(EmpName))
+                {
+                    Emp = EmployeeAppService.GetByName(EmpName);
+                }
+                else
+                {
+                    Employee newEmployee = new Employee { EmployeeID = Guid.NewGuid(), Name = EmpName };
+                    Emp = EmployeeAppService.Register(newEmployee);
+                }
+
+
+
 
                 while (continueFileLeave)
                 {
-                    String LeaveType = checkLeaveType(EmpName);
-                    int LeaveDays = checkDaysOfLeave();
+                    String LeaveType = checkLeaveType(Emp);
+                    int LeaveDays = checkDaysOfLeave(LeaveType, Emp);
 
                     Console.Write("Date of Leave: ");
-                    String DateofLeave = Console.ReadLine();
+                    String LeaveDate = Console.ReadLine();
                     Console.WriteLine();
 
-                    CalculateAvailableLeaveDays(EmpName, LeaveType, LeaveDays);
+                    EmployeeAppService.CalculateAvailableLeaveDays(Emp.Name, LeaveType, LeaveDays);
 
-                    
 
-                    EmployeeNames.Add(EmpName);
-                    TypeOfLeaves.Add(LeaveType);
-                    DaysOfLeaves.Add(LeaveDays);
-                    LeaveDates.Add(DateofLeave);
+
+                    FiledLeave newLeave = new FiledLeave { EmployeeID = Emp.EmployeeID, Name = Emp.Name, TypeOfLeaves = LeaveType, DaysOfLeaves = LeaveDays, DateOfLeave = LeaveDate };
+                    EmployeeAppService.RecordLeave(newLeave);
 
                     Console.WriteLine("Would you like to account another leave? (y/n)");
                     Console.Write("Input: ");
@@ -77,7 +74,7 @@ internal class EmpLeaveManagement
                 while (continueAsAdmin)
                 {
                     Console.WriteLine("======================== ADMIN DASHBOARD ========================");
-                    Console.WriteLine("[1] View Leave History\n[2] Logout");
+                    Console.WriteLine("[1] View Leave History\n[2] View Employee List\n[3] Logout");
                     Console.Write("Input: ");
                     Choice = Convert.ToInt16(Console.ReadLine());
 
@@ -85,9 +82,13 @@ internal class EmpLeaveManagement
 
                     if (Choice == 1)
                     {
-                        output();
+                        showFiledLeaves();
                     }
-                    else if(Choice == 2)
+                    else if (Choice == 2)
+                    {
+                        showEmployeeList();
+                    }
+                    else if (Choice == 3)
                     {
                         break;
                     }
@@ -125,23 +126,18 @@ internal class EmpLeaveManagement
             }
         }
     }
-    static String checkLeaveType(String EmployeeName)
+    static String checkLeaveType(Employee Emp)
     {
+
         while (true)
         {
-            foreach (Employee emp in Employees)
-            {
-                if(emp.Name == EmployeeName)
-                {
-                   Console.WriteLine($"Input\t\tType of Leave\t\tAvailable Days\n" +
-                   $"[1]\t|\tMaternity Leave\t|\t{emp.MaternityLeave} \n" +
-                   $"[2]\t|\tPaternity Leave\t|\t{emp.PaternityLeave} \n" +
-                   $"[3]\t|\tSick Leave\t|\t{emp.VacationLeave} \n" +
-                   $"[4]\t|\tVacation Leave\t|\t{emp.SickLeave} ");
-                }
-                break;
-               
-            }
+
+            Console.WriteLine($"Input\t\tType of Leave\t\tAvailable Days\n" +
+            $"[1]\t|\tMaternity Leave\t|\t{Emp.MaternityLeave} \n" +
+            $"[2]\t|\tPaternity Leave\t|\t{Emp.PaternityLeave} \n" +
+            $"[3]\t|\tSick Leave\t|\t{Emp.SickLeave} \n" +
+            $"[4]\t|\tVacation Leave\t|\t{Emp.VacationLeave} ");
+
             Console.Write("Input: ");
             int LeaveType = Convert.ToInt16(Console.ReadLine());
             Console.WriteLine();
@@ -165,10 +161,27 @@ internal class EmpLeaveManagement
             }
         }
     }
-    static int checkDaysOfLeave()
+    static int checkDaysOfLeave(string LeaveType, Employee emp)
     {
+        int LeaveTypeAvailable = 0;
         while (true)
         {
+            switch (LeaveType)
+            {
+                case "Maternity Leave":
+                    LeaveTypeAvailable = emp.MaternityLeave;
+                    break;
+                case "Paternity Leave":
+                    LeaveTypeAvailable = emp.PaternityLeave;
+                    break;
+                case "Sick Leave":
+                    LeaveTypeAvailable = emp.SickLeave;
+                    break;
+                case "Vacation Leave":
+                    LeaveTypeAvailable = emp.VacationLeave;
+                    break;
+            }
+
             Console.Write("Input Days of Leave: ");
             int DaysofLeave = Convert.ToInt16(Console.ReadLine());
             Console.WriteLine();
@@ -178,53 +191,52 @@ internal class EmpLeaveManagement
                 Console.WriteLine($"Please input a valid amount.");
                 Console.WriteLine();
             }
-            else if(DaysofLeave > MaternityAvailableLeave)
+            else if (DaysofLeave > LeaveTypeAvailable)
             {
-                Console.WriteLine($"{DaysofLeave} exceeds {MaternityAvailableLeave} days of available leaves.");
+                Console.WriteLine($"{DaysofLeave} day(s) exceeds {LeaveTypeAvailable} day(s) of available leaves.");
                 Console.WriteLine();
             }
-            else {
+            else
+            {
                 return DaysofLeave;
             }
         }
     }
-    static void CalculateAvailableLeaveDays(String EmployeeName, String TypeOfLeave, int Days)
-    {
-        foreach (Employee emp in Employees)
-        {
-            if (emp.Name == EmployeeName)
-            {
-                switch (TypeOfLeave)
-                {
-                    case "Maternity Leave":
 
-                        emp.MaternityLeave -= Days;
-                        break;
-                    case "Paternity Leave":
-                        emp.PaternityLeave -= Days;
-                        break;
-                    case "Sick Leave":
-                        emp.SickLeave -= Days;
-                        break;
-                    case "Vacation Leave":
-                        emp.VacationLeave -= Days;
-                        break;
-                }
-                break;
-            }
-        }
-    }
-    static void output()
+    static void showFiledLeaves()
     {
-        if (EmployeeNames.Count() == 0)
+        var leaves = EmployeeAppService.GetLeaves();
+
+        if (leaves.Count() == 0)
         {
             Console.WriteLine("No data yet.\n");
         }
         else
         {
-            for (int i = 0; i < TypeOfLeaves.Count; i++)
+            foreach (var leave in leaves)
             {
-                Console.WriteLine($"Employee Name: {EmployeeNames[i]}, Type of Leave: {TypeOfLeaves[i]}, Days: {DaysOfLeaves[i]}, Date: {LeaveDates[i]}");
+                Console.WriteLine($"Employee Name: {leave.Name}, Type of Leave: {leave.TypeOfLeaves}, Days: {leave.DaysOfLeaves}, Date: {leave.DateOfLeave}");
+
+            }
+            Console.WriteLine();
+        }
+    }
+
+    static void showEmployeeList()
+    {
+        var Employees = EmployeeAppService.GetEmployees();
+
+        if (Employees.Count() == 0)
+        {
+            Console.WriteLine("No data yet.\n");
+        }
+        else
+        {
+            Console.WriteLine("======================== EMPLOYEES ========================");
+            foreach (var employee in Employees)
+            {
+                Console.WriteLine(employee.Name);
+
             }
             Console.WriteLine();
         }
