@@ -11,98 +11,89 @@ internal class EmpLeaveManagement
 
     static void Main(string[] args)
     {
-        bool continueSystem = true, continueFileLeave = true, continueAsAdmin = true;
-
+        bool continueSystem = true;
         while (continueSystem)
         {
 
-            int Choice = checkMenuChoice();
-
-
-            if (Choice == 1)
+            if (checkMenuChoice() == 1)
             {
-                Console.WriteLine("======================== FILE LEAVE ========================");
-
-                Console.Write("Input Employee Name: ");
-                String EmpName = Console.ReadLine();
-                Console.WriteLine();
-
-                Employee Emp;
-                if (EmployeeAppService.isNameExist(EmpName))
-                {
-                    Emp = EmployeeAppService.GetByName(EmpName);
-                }
-                else
-                {
-                    Employee newEmployee = new Employee { EmployeeID = Guid.NewGuid(), Name = EmpName };
-                    Emp = EmployeeAppService.Register(newEmployee);
-                }
-
-
-
-
-                while (continueFileLeave)
-                {
-                    String LeaveType = checkLeaveType(Emp);
-                    int LeaveDays = checkDaysOfLeave(LeaveType, Emp);
-
-                    Console.Write("Date of Leave: ");
-                    String LeaveDate = Console.ReadLine();
-                    Console.WriteLine();
-
-                    EmployeeAppService.CalculateAvailableLeaveDays(Emp.Name, LeaveType, LeaveDays);
-
-
-
-                    FiledLeave newLeave = new FiledLeave { EmployeeID = Emp.EmployeeID, Name = Emp.Name, TypeOfLeaves = LeaveType, DaysOfLeaves = LeaveDays, DateOfLeave = LeaveDate };
-                    EmployeeAppService.RecordLeave(newLeave);
-
-                    Console.WriteLine("Would you like to account another leave? (y/n)");
-                    Console.Write("Input: ");
-                    string YorN = Console.ReadLine();
-                    if (YorN == "n")
-                    {
-                        continueFileLeave = false;
-                    }
-                }
-                continueFileLeave = true;
-                Console.WriteLine();
+                EmployeeFileLeave();
 
             }
-            else if (Choice == 2)
+            else if (checkMenuChoice() == 2)
             {
-                while (continueAsAdmin)
-                {
-                    Console.WriteLine("======================== ADMIN DASHBOARD ========================");
-                    Console.WriteLine("[1] View Leave History\n[2] View Employee List\n[3] Logout");
-                    Console.Write("Input: ");
-                    Choice = Convert.ToInt16(Console.ReadLine());
-
-                    Console.WriteLine();
-
-                    if (Choice == 1)
-                    {
-                        showFiledLeaves();
-                    }
-                    else if (Choice == 2)
-                    {
-                        showEmployeeList();
-                    }
-                    else if (Choice == 3)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Option does not exist, choose again.\n");
-                    }
-                }
+                AdminDashboard();
             }
             else
             {
-                Console.WriteLine();
+                Console.WriteLine("System Closed.");
 
                 Environment.Exit(0);
+            }
+        }
+    }
+    static void EmployeeFileLeave()
+    {
+        bool continueFileLeave = true;
+        Console.WriteLine("======================== FILE LEAVE ========================");
+
+        Console.Write("Input Employee Name: ");
+        String EmpName = Console.ReadLine();
+        Console.WriteLine();
+
+        Employee Emp;
+
+        Emp = EmployeeAppService.GetEmployee(EmpName);
+
+        while (continueFileLeave)
+        {
+            String LeaveType = setLeaveType(Emp);
+            int LeaveDays = setDaysOfLeave(LeaveType, Emp);
+            String LeaveDate = setDateOfLeave();
+
+            EmployeeAppService.CalculateAvailableLeaveDays(Emp.Name, LeaveType, LeaveDays);
+
+            FiledLeave newLeave = new FiledLeave { EmployeeID = Emp.EmployeeID, Name = Emp.Name, TypeOfLeaves = LeaveType, DaysOfLeaves = LeaveDays, DateOfLeave = LeaveDate };
+            EmployeeAppService.RecordLeave(newLeave);
+
+            Console.WriteLine("Would you like to account another leave? (y/n)");
+            Console.Write("Input: ");
+            string YorN = Console.ReadLine();
+            if (YorN == "n")
+            {
+                continueFileLeave = false;
+            }
+        }
+        continueFileLeave = true;
+        Console.WriteLine();
+    }
+    static void AdminDashboard()
+    {
+        bool continueAsAdmin = true;
+        while (continueAsAdmin)
+        {
+            Console.WriteLine("======================== ADMIN DASHBOARD ========================");
+            Console.WriteLine("[1] View Leave History\n[2] View Employee List\n[3] Logout");
+            Console.Write("Input: ");
+            int Choice = Convert.ToInt16(Console.ReadLine());
+
+            Console.WriteLine();
+
+            if (Choice == 1)
+            {
+                showFiledLeaves();
+            }
+            else if (Choice == 2)
+            {
+                showEmployeeList();
+            }
+            else if (Choice == 3)
+            {
+                break;
+            }
+            else
+            {
+                Console.WriteLine("Option does not exist, choose again.\n");
             }
         }
     }
@@ -126,7 +117,7 @@ internal class EmpLeaveManagement
             }
         }
     }
-    static String checkLeaveType(Employee Emp)
+    static String setLeaveType(Employee Emp)
     {
 
         while (true)
@@ -139,53 +130,47 @@ internal class EmpLeaveManagement
             $"[4]\t|\tVacation Leave\t|\t{Emp.VacationLeave} ");
 
             Console.Write("Input: ");
-            int LeaveType = Convert.ToInt16(Console.ReadLine());
+            int option = Convert.ToInt16(Console.ReadLine());
             Console.WriteLine();
-            switch (LeaveType)
+
+            string LeaveType = "";
+            switch (option)
             {
                 case 1:
-                    return "Maternity Leave";
+                    LeaveType = "Maternity Leave";
                     break;
                 case 2:
-                    return "Paternity Leave";
+                    LeaveType = "Paternity Leave";
                     break;
                 case 3:
-                    return "Sick Leave";
+                    LeaveType = "Sick Leave";
                     break;
                 case 4:
-                    return "Vacation Leave";
+                    LeaveType = "Vacation Leave";
                     break;
                 default:
                     Console.WriteLine("Option does not exist, choose again.\n");
                     break;
             }
+            if (EmployeeAppService.checkDaysOfLeaveAvailable(LeaveType, Emp) > 0)
+            {
+                return LeaveType;
+            }
+            else
+            {
+                Console.WriteLine($"There is no available days left for {LeaveType}, Choose again.\n");
+            }
         }
     }
-    static int checkDaysOfLeave(string LeaveType, Employee emp)
+    static int setDaysOfLeave(string LeaveType, Employee emp)
     {
-        int LeaveTypeAvailable = 0;
         while (true)
         {
-            switch (LeaveType)
-            {
-                case "Maternity Leave":
-                    LeaveTypeAvailable = emp.MaternityLeave;
-                    break;
-                case "Paternity Leave":
-                    LeaveTypeAvailable = emp.PaternityLeave;
-                    break;
-                case "Sick Leave":
-                    LeaveTypeAvailable = emp.SickLeave;
-                    break;
-                case "Vacation Leave":
-                    LeaveTypeAvailable = emp.VacationLeave;
-                    break;
-            }
-
             Console.Write("Input Days of Leave: ");
             int DaysofLeave = Convert.ToInt16(Console.ReadLine());
             Console.WriteLine();
 
+            int LeaveTypeAvailable = EmployeeAppService.checkDaysOfLeaveAvailable(LeaveType, emp);
             if (DaysofLeave <= 0)
             {
                 Console.WriteLine($"Please input a valid amount.");
@@ -202,7 +187,13 @@ internal class EmpLeaveManagement
             }
         }
     }
-
+    static string setDateOfLeave()
+    {
+        Console.Write("Date of Leave: ");
+        String LeaveDate = Console.ReadLine();
+        Console.WriteLine();
+        return LeaveDate;
+    }
     static void showFiledLeaves()
     {
         var leaves = EmployeeAppService.GetLeaves();
@@ -221,7 +212,6 @@ internal class EmpLeaveManagement
             Console.WriteLine();
         }
     }
-
     static void showEmployeeList()
     {
         var Employees = EmployeeAppService.GetEmployees();
@@ -241,5 +231,4 @@ internal class EmpLeaveManagement
             Console.WriteLine();
         }
     }
-
 }

@@ -13,16 +13,6 @@ namespace EmpLeaveManagementAppService
             EmpDataService.AddLeave(Leave);
         }
 
-        public Employee Register(Employee employee)
-        {
-            if (!EmpDataService.EmployeeExists(employee.Name))
-            {
-                EmpDataService.AddEmployee(employee);
-            }
-            return employee;
-        }
-
-
         public void CalculateAvailableLeaveDays(String EmployeeName, String TypeOfLeave, int Days)
         {
             var Emp = EmpDataService.GetByName(EmployeeName);
@@ -56,20 +46,25 @@ namespace EmpLeaveManagementAppService
 
         }
 
-        public bool isNameExist(string name)
-        {
-            if (EmpDataService.GetByName(name) != null)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
         public Employee? GetByName(string name)
         {
             return EmpDataService.GetByName(name);
         }
+
+        public Employee GetEmployee(string EmpName)
+        {
+            Employee Emp;
+            if (EmpDataService.EmployeeExists(EmpName))
+            {
+                return Emp = EmpDataService.GetByName(EmpName);
+            }
+            else
+            {
+                Employee newEmployee = new Employee { EmployeeID = Guid.NewGuid(), Name = EmpName };
+                EmpDataService.AddEmployee(newEmployee);
+                return Emp = newEmployee;
+            }
+        }
+
     }
 }
