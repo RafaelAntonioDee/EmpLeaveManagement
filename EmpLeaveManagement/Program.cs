@@ -9,20 +9,21 @@ internal class EmpLeaveManagement
 {
     static AppService EmployeeAppService = new AppService();
 
+    // ----------------------------------------------------MAIN----------------------------------------------------
     static void Main(string[] args)
     {
         bool continueSystem = true;
         while (continueSystem)
         {
-
-            if (checkMenuChoice() == 1)
+            int Choice = checkMenuChoice();
+            if (Choice == 1)
             {
                 EmployeeFileLeave();
 
             }
-            else if (checkMenuChoice() == 2)
+            else if (Choice == 2)
             {
-                AdminDashboard();
+                AdminLogin();
             }
             else
             {
@@ -32,71 +33,9 @@ internal class EmpLeaveManagement
             }
         }
     }
-    static void EmployeeFileLeave()
-    {
-        bool continueFileLeave = true;
-        Console.WriteLine("======================== FILE LEAVE ========================");
 
-        Console.Write("Input Employee Name: ");
-        String EmpName = Console.ReadLine();
-        Console.WriteLine();
 
-        Employee Emp;
-
-        Emp = EmployeeAppService.GetEmployee(EmpName);
-
-        while (continueFileLeave)
-        {
-            String LeaveType = setLeaveType(Emp);
-            int LeaveDays = setDaysOfLeave(LeaveType, Emp);
-            String LeaveDate = setDateOfLeave();
-
-            EmployeeAppService.CalculateAvailableLeaveDays(Emp.Name, LeaveType, LeaveDays);
-
-            FiledLeave newLeave = new FiledLeave { EmployeeID = Emp.EmployeeID, Name = Emp.Name, TypeOfLeaves = LeaveType, DaysOfLeaves = LeaveDays, DateOfLeave = LeaveDate };
-            EmployeeAppService.RecordLeave(newLeave);
-
-            Console.WriteLine("Would you like to account another leave? (y/n)");
-            Console.Write("Input: ");
-            string YorN = Console.ReadLine();
-            if (YorN == "n")
-            {
-                continueFileLeave = false;
-            }
-        }
-        continueFileLeave = true;
-        Console.WriteLine();
-    }
-    static void AdminDashboard()
-    {
-        bool continueAsAdmin = true;
-        while (continueAsAdmin)
-        {
-            Console.WriteLine("======================== ADMIN DASHBOARD ========================");
-            Console.WriteLine("[1] View Leave History\n[2] View Employee List\n[3] Logout");
-            Console.Write("Input: ");
-            int Choice = Convert.ToInt16(Console.ReadLine());
-
-            Console.WriteLine();
-
-            if (Choice == 1)
-            {
-                showFiledLeaves();
-            }
-            else if (Choice == 2)
-            {
-                showEmployeeList();
-            }
-            else if (Choice == 3)
-            {
-                break;
-            }
-            else
-            {
-                Console.WriteLine("Option does not exist, choose again.\n");
-            }
-        }
-    }
+    // ----------------------------------------------------MENU FUNCTIONS----------------------------------------------------
     static int checkMenuChoice()
     {
         while (true)
@@ -114,6 +53,54 @@ internal class EmpLeaveManagement
             else
             {
                 return Choice;
+            }
+        }
+    }
+
+
+    // ----------------------------------------------------EMPLOYEE FUNCTIONS----------------------------------------------------
+    static void EmployeeFileLeave()
+    {
+        bool continueFileLeave = true;
+        Console.WriteLine("======================== FILE LEAVE ========================");
+
+        while (true)
+        {
+            Console.Write("Input Employee Name: ");
+            String EmpName = Console.ReadLine();
+            Console.WriteLine();
+
+            Employee Emp;
+
+            if (EmployeeAppService.checkEmployee(EmpName))
+            {
+                Emp = EmployeeAppService.GetEmployee(EmpName);
+                while (continueFileLeave)
+                {
+                    String LeaveType = setLeaveType(Emp);
+                    int LeaveDays = setDaysOfLeave(LeaveType, Emp);
+                    String LeaveDate = setDateOfLeave();
+
+                    EmployeeAppService.CalculateAvailableLeaveDays(Emp.Name, LeaveType, LeaveDays);
+
+                    FiledLeave newLeave = new FiledLeave { EmployeeID = Emp.EmployeeID, Name = Emp.Name, TypeOfLeaves = LeaveType, DaysOfLeaves = LeaveDays, DateOfLeave = LeaveDate };
+                    EmployeeAppService.RecordLeave(newLeave);
+
+                    Console.WriteLine("Would you like to account another leave? (y/n)");
+                    Console.Write("Input: ");
+                    string YorN = Console.ReadLine();
+                    if (YorN == "n")
+                    {
+                        continueFileLeave = false;
+                    }
+                }
+                continueFileLeave = true;
+                Console.WriteLine();
+                break;
+            }
+            else
+            {
+                Console.WriteLine("Employee does not exist.\n");
             }
         }
     }
@@ -166,9 +153,17 @@ internal class EmpLeaveManagement
     {
         while (true)
         {
-            Console.Write("Input Days of Leave: ");
-            int DaysofLeave = Convert.ToInt16(Console.ReadLine());
-            Console.WriteLine();
+            int DaysofLeave = 0;
+
+            if (LeaveType == "Maternity Leave") {
+                DaysofLeave = 105;
+            }
+            else
+            {
+                Console.Write("Input Days of Leave: ");
+                DaysofLeave = Convert.ToInt16(Console.ReadLine());
+                Console.WriteLine();
+            }
 
             int LeaveTypeAvailable = EmployeeAppService.checkDaysOfLeaveAvailable(LeaveType, emp);
             if (DaysofLeave <= 0)
@@ -193,6 +188,200 @@ internal class EmpLeaveManagement
         String LeaveDate = Console.ReadLine();
         Console.WriteLine();
         return LeaveDate;
+    }
+
+
+    // ----------------------------------------------------ADMIN FUNCTIONS----------------------------------------------------
+    static void AdminLogin()
+    {
+        Console.WriteLine("======================== ADMIN LOGIN ========================");
+
+        for (int i = 0; i < 3; i++)
+        {
+            Console.Write("Enter username: ");
+            string usernameInput = Console.ReadLine();
+            Console.Write("Enter password: ");
+            string passwordInput = Console.ReadLine();
+            Console.WriteLine();
+
+            bool isMatched = EmployeeAppService.Authenticate(usernameInput, passwordInput);
+            if (isMatched)
+            {
+                AdminDashboard();
+                break;
+            }
+            else
+            {
+                Console.WriteLine("Incorrect Credentials.");
+            }
+        }
+    }
+    static void AdminDashboard()
+    {
+        bool continueAsAdmin = true;
+        while (continueAsAdmin)
+        {
+            Console.WriteLine("======================== ADMIN DASHBOARD ========================");
+            Console.WriteLine("[1] View Leave History\n[2] Manage Employees\n[3] Manage Admins\n[4] Logout");
+            Console.Write("Input: ");
+            int Choice = Convert.ToInt16(Console.ReadLine());
+
+            Console.WriteLine();
+
+            if (Choice == 1)
+            {
+                showFiledLeaves();
+            }
+            else if (Choice == 2)
+            {
+                manageEmployees();
+            }
+            else if (Choice == 3)
+            {
+                manageAdmins();
+            }
+            else if (Choice == 4)
+            {
+                break;
+            }
+            else
+            {
+                Console.WriteLine("Option does not exist, choose again.\n");
+            }
+        }
+    }
+    static void manageAdmins()
+    {
+        while (true)
+        {
+            Console.WriteLine("======================== MANAGE ADMINS ========================");
+            Console.WriteLine("[1] View Admin List\n[2] Add Admin\n[3] Remove Admin\n[4] Exit");
+            Console.Write("Input: ");
+            int Choice = Convert.ToInt16(Console.ReadLine());
+
+            Console.WriteLine();
+
+            if (Choice == 1)
+            {
+                showAdminList();
+            }
+            else if (Choice == 2)
+            {
+                addAdmins();
+            }
+            else if (Choice == 3)
+            {
+                removeAdmins();
+            }
+            else if (Choice == 4)
+            {
+                break;
+            }
+            else
+            {
+                Console.WriteLine("Option does not exist, choose again.\n");
+            }
+        }
+    }
+    static void removeAdmins()
+    {
+        if (EmployeeAppService.getAdmins().Count > 1)
+        {
+            Console.Write("Remove Admin: ");
+            string user = Console.ReadLine();
+            Console.WriteLine();
+
+            if (EmployeeAppService.checkAdmin(user))
+            {
+                EmployeeAppService.RemoveAdmin(user);
+            }
+            else
+            {
+                Console.WriteLine("Admin does not exist.\n");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Need to keep atleast 1 admin in the system");
+        }
+    }
+    static void addAdmins()
+    {
+        Console.Write("Add admin username: ");
+        string username = Console.ReadLine();
+        Console.Write("Add admin password: ");
+        string password = Console.ReadLine();
+
+        if (EmployeeAppService.checkEmployee(username))
+        {
+            Console.WriteLine("Admin already exists.\n");
+        }
+        else
+        {
+            EmployeeAppService.AddAdmin(username, password);
+        }
+    }
+    static void manageEmployees()
+    {
+        while (true)
+        {
+            Console.WriteLine("======================== MANAGE EMPLOYEES ========================");
+            Console.WriteLine("[1] View Employees List\n[2] Add Employees\n[3] Remove Employees\n[4] Exit");
+            Console.Write("Input: ");
+            int Choice = Convert.ToInt16(Console.ReadLine());
+
+            Console.WriteLine();
+
+            if (Choice == 1)
+            {
+                showEmployeeList();
+            }
+            else if (Choice == 2)
+            {
+                addEmployees();
+            }
+            else if (Choice == 3)
+            {
+                removeEmployees();
+            }
+            else if (Choice == 4)
+            {
+                break;
+            }
+            else
+            {
+                Console.WriteLine("Option does not exist, choose again.\n");
+            }
+        }
+    }
+    static void removeEmployees()
+    {
+        Console.Write("Remove Employee Name: ");
+        string empName = Console.ReadLine();
+        Console.WriteLine();
+
+        if (EmployeeAppService.checkEmployee(empName))
+        {
+            EmployeeAppService.RemoveEmployee(empName);
+        }
+        else
+        {
+            Console.WriteLine("Employee does not exist.\n");
+        }
+    }
+    static void addEmployees()
+    {
+        Console.Write("Add Employee Name: ");
+        string empName = Console.ReadLine();
+
+        if (EmployeeAppService.checkEmployee(empName))
+        {
+            Console.WriteLine("Employee already exists.\n");
+        }
+        else
+        {
+            EmployeeAppService.AddEmployee(empName);
+        }
     }
     static void showFiledLeaves()
     {
@@ -222,7 +411,7 @@ internal class EmpLeaveManagement
         }
         else
         {
-            Console.WriteLine("======================== EMPLOYEES ========================");
+            Console.WriteLine("EMPLOYEES:");
             foreach (var employee in Employees)
             {
                 Console.WriteLine(employee.Name);
@@ -231,4 +420,24 @@ internal class EmpLeaveManagement
             Console.WriteLine();
         }
     }
+    static void showAdminList()
+    {
+        var Admins = EmployeeAppService.getAdmins();
+
+        if (Admins.Count() == 0)
+        {
+            Console.WriteLine("No data yet.\n");
+        }
+        else
+        {
+            Console.WriteLine("ADMINS:");
+            foreach (var admin in Admins)
+            {
+                Console.WriteLine($"Username: {admin.Username}, Password: {admin.Password}");
+
+            }
+            Console.WriteLine();
+        }
+    }
+
 }

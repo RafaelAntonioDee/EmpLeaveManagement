@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace EmpLeaveManagementAppModel
 {
-    internal class AdminAccounts
+    public class AdminAccount
     {
+        public Guid AccountID { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
     }
 }
