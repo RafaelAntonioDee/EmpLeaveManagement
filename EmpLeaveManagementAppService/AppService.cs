@@ -6,7 +6,7 @@ namespace EmpLeaveManagementAppService
 {
     public class AppService
     {
-        LeaveManagementDataService EmpDataService = new LeaveManagementDataService(new LeaveManagementInMemoryData());
+        LeaveManagementDataService EmpDataService = new LeaveManagementDataService(new LeaveManagementJsonData());
 
         // ----------------------------------------------------FILE LEAVE FUNCTIONS----------------------------------------------------
         public void CalculateAvailableLeaveDays(String EmployeeName, String TypeOfLeave, int Days)
