@@ -3,91 +3,82 @@ using EmpLeaveManagementAppModel;
 
 namespace EmpLeaveManagementDataService
 {
-    public class DataService
+    public class LeaveManagementDataService
     {
-        static List<Employee> Employees = new List<Employee>();
-        static List<FiledLeave> FiledLeaves = new List<FiledLeave>();
-        static List<AdminAccount> AdminAccounts = new List<AdminAccount>();
-
-        // ----------------------------------------------------CONSTRUCTOR----------------------------------------------------
-        public DataService() {
-            AdminAccount adminAccount = new AdminAccount { AccountID = Guid.NewGuid(), Username = "dee", Password = "dee123" };
-            Employee employee1 = new Employee { EmployeeID = Guid.NewGuid(), Name = "Rafael Antonio Dee" };
-            Employee employee2 = new Employee { EmployeeID = Guid.NewGuid(), Name = "Indaleen Quinsayas" };
-            AdminAccounts.Add(adminAccount);
-            Employees.Add(employee1);
-            Employees.Add(employee2);
+        ILeaveManagementDataService _dataService;
+        public LeaveManagementDataService(ILeaveManagementDataService leaveManagementDataService) {
+            _dataService = leaveManagementDataService;
         }
 
 
         // ----------------------------------------------------ADD FUNCTIONS----------------------------------------------------
         public void AddLeave(FiledLeave Leave)
         {
-            FiledLeaves.Add(Leave);
+            _dataService.AddLeave(Leave);
         }
         public void AddEmployee(Employee employee)
         {
-            Employees.Add(employee);
+            _dataService.AddEmployee(employee);
         }
         public void AddAdmin(AdminAccount admin)
         {
-            AdminAccounts.Add(admin);
+            _dataService.AddAdmin(admin);
         }
 
 
         // ----------------------------------------------------REMOVE FUNCTIONS----------------------------------------------------
         public void RemoveEmployee(Employee employee)
         {
-            Employees.Remove(employee);
+            _dataService.RemoveEmployee(employee);
         }
         public void RemoveAdmin(AdminAccount admin)
         {
-            AdminAccounts.Remove(admin);
+            _dataService.RemoveAdmin(admin);
         }
 
 
         // ----------------------------------------------------CHECK EXISTENCE FUNCTIONS----------------------------------------------------
         public bool EmployeeExists(string empName)
         {
-            return Employees.Any(a => a.Name == empName);
+            return _dataService.EmployeeExists(empName);
         }
         public bool AdminExists(string username)
         {
-            return AdminAccounts.Any(a => a.Username == username);
+            return _dataService.AdminExists(username);
         }
 
 
         // ----------------------------------------------------GET FUNCTIONS----------------------------------------------------
         public Employee? GetEmployeeByName(string name)
         {
-            return Employees.FirstOrDefault(a => a.Name == name);
+            return _dataService.GetEmployeeByName(name);
         }
         public AdminAccount? GetAdminByUser(string user)
         {
-            return AdminAccounts.FirstOrDefault(a => a.Username == user);
+            return _dataService.GetAdminByUser(user);
         }
         public AdminAccount? AccountGetByUsername(string username)
         {
-            return AdminAccounts.FirstOrDefault(a => a.Username == username);
+            return _dataService.AccountGetByUsername(username);
         }
         public Employee? GetById(Guid id)
         {
-            return Employees.FirstOrDefault(a => a.EmployeeID == id);
+            return _dataService.GetById(id);
         }
 
 
         // ----------------------------------------------------GET LISTS FUNCTIONS----------------------------------------------------
         public List<FiledLeave> GetLeaves()
         {
-            return FiledLeaves;
+            return _dataService.GetLeaves();
         }
         public List<Employee> GetEmployees()
         {
-            return Employees;
+            return _dataService.GetEmployees();
         }
         public List<AdminAccount> GetAdmins()
         {
-            return AdminAccounts;
+            return _dataService.GetAdmins();
         }
 
     }
