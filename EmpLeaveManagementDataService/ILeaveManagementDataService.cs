@@ -9,7 +9,7 @@ namespace EmpLeaveManagementDataService
 {
     public interface ILeaveManagementDataService
     {
-        void AddLeave(FiledLeave Leave);
+        void AddLeave(FiledLeave Leave, Employee emp);
         void AddEmployee(Employee employee);
         void AddAdmin(AdminAccount admin);
         void RemoveEmployee(Employee employee);

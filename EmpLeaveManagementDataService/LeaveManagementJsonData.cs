@@ -97,7 +97,7 @@ namespace EmpLeaveManagementDataService
         }
 
         // ----------------------------------------------------ADD FUNCTIONS----------------------------------------------------
-        public void AddLeave(FiledLeave Leave)
+        public void AddLeave(FiledLeave Leave, Employee emp)
         {
             FiledLeaves.Add(Leave);
             SaveDataToJsonFile();

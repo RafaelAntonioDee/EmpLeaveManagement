@@ -74,22 +74,27 @@ internal class EmpLeaveManagement
 
             if (EmployeeAppService.checkEmployee(EmpName))
             {
-                Emp = EmployeeAppService.GetEmployee(EmpName);
+
                 while (continueFileLeave)
                 {
-                    String LeaveType = setLeaveType(Emp);
+                    Emp = EmployeeAppService.GetEmployee(EmpName);
+
+                    String LeaveType = setLeaveType(EmpName);
                     int LeaveDays = setDaysOfLeave(LeaveType, Emp);
                     String LeaveDate = setDateOfLeave();
 
-                    EmployeeAppService.CalculateAvailableLeaveDays(Emp.Name, LeaveType, LeaveDays);
+                    Emp = EmployeeAppService.CalculateAvailableLeaveDays(Emp.Name, LeaveType, LeaveDays);
 
-                    FiledLeave newLeave = new FiledLeave { EmployeeID = Emp.EmployeeID, Name = Emp.Name, TypeOfLeaves = LeaveType, DaysOfLeaves = LeaveDays, DateOfLeave = LeaveDate };
-                    EmployeeAppService.RecordLeave(newLeave);
+                    FiledLeave newLeave = new FiledLeave { LeaveID = Guid.NewGuid(), EmployeeID = Emp.EmployeeID, Name = Emp.Name, TypeOfLeave = LeaveType, DaysOfLeave = LeaveDays, DateOfLeave = LeaveDate };
+                    EmployeeAppService.RecordLeave(newLeave, Emp);
 
                     Console.WriteLine("Would you like to account another leave? (y/n)");
                     Console.Write("Input: ");
                     string YorN = Console.ReadLine();
-                    if (YorN == "n")
+                    if (YorN == "y")
+                    {
+                        continueFileLeave = true;
+                    }else
                     {
                         continueFileLeave = false;
                     }
@@ -104,12 +109,12 @@ internal class EmpLeaveManagement
             }
         }
     }
-    static String setLeaveType(Employee Emp)
+    static String setLeaveType(string EmpName)
     {
 
         while (true)
         {
-
+            Employee Emp = EmployeeAppService.GetEmployee(EmpName);
             Console.WriteLine($"Input\t\tType of Leave\t\tAvailable Days\n" +
             $"[1]\t|\tMaternity Leave\t|\t{Emp.MaternityLeave} \n" +
             $"[2]\t|\tPaternity Leave\t|\t{Emp.PaternityLeave} \n" +
@@ -395,7 +400,7 @@ internal class EmpLeaveManagement
         {
             foreach (var leave in leaves)
             {
-                Console.WriteLine($"Employee Name: {leave.Name}, Type of Leave: {leave.TypeOfLeaves}, Days: {leave.DaysOfLeaves}, Date: {leave.DateOfLeave}");
+                Console.WriteLine($"Employee Name: {leave.Name}, Type of Leave: {leave.TypeOfLeave}, Days: {leave.DaysOfLeave}, Date: {leave.DateOfLeave}");
 
             }
             Console.WriteLine();

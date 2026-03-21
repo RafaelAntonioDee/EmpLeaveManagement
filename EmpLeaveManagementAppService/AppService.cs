@@ -6,33 +6,36 @@ namespace EmpLeaveManagementAppService
 {
     public class AppService
     {
-        LeaveManagementDataService EmpDataService = new LeaveManagementDataService(new LeaveManagementJsonData());
+        LeaveManagementDataService EmpDataService = new LeaveManagementDataService(new LeaveManagementDBData());
 
         // ----------------------------------------------------FILE LEAVE FUNCTIONS----------------------------------------------------
-        public void CalculateAvailableLeaveDays(String EmployeeName, String TypeOfLeave, int Days)
+        public Employee CalculateAvailableLeaveDays(String EmployeeName, String TypeOfLeave, int Days)
         {
             var Emp = EmpDataService.GetEmployeeByName(EmployeeName);
-
-            switch (TypeOfLeave)
+            while (true)
             {
-                case "Maternity Leave":
+                switch (TypeOfLeave)
+                {
+                    case "Maternity Leave":
 
-                    Emp.MaternityLeave -= Days;
-                    break;
-                case "Paternity Leave":
-                    Emp.PaternityLeave -= Days;
-                    break;
-                case "Sick Leave":
-                    Emp.SickLeave -= Days;
-                    break;
-                case "Vacation Leave":
-                    Emp.VacationLeave -= Days;
-                    break;
+                        Emp.MaternityLeave -= Days;
+                        return Emp;
+                    case "Paternity Leave":
+                        Emp.PaternityLeave -= Days;
+                        return Emp;
+                    case "Sick Leave":
+                        Emp.SickLeave -= Days;
+                        return Emp;
+                    case "Vacation Leave":
+                        Emp.VacationLeave -= Days;
+                        return Emp;
+                }
             }
+
         }
-        public void RecordLeave(FiledLeave Leave)
+        public void RecordLeave(FiledLeave Leave, Employee emp)
         {
-            EmpDataService.AddLeave(Leave);
+            EmpDataService.AddLeave(Leave, emp);
         }
         public int checkDaysOfLeaveAvailable(string LeaveType, Employee emp)
         {
@@ -97,7 +100,8 @@ namespace EmpLeaveManagementAppService
 
 
         // ----------------------------------------------------REMOVE FUNCTIONS----------------------------------------------------
-        public void RemoveEmployee(string EmpName) {
+        public void RemoveEmployee(string EmpName)
+        {
             Employee emp = EmpDataService.GetEmployeeByName(EmpName);
             EmpDataService.RemoveEmployee(emp);
         }

@@ -12,9 +12,9 @@ namespace EmpLeaveManagementDataService
 
 
         // ----------------------------------------------------ADD FUNCTIONS----------------------------------------------------
-        public void AddLeave(FiledLeave Leave)
+        public void AddLeave(FiledLeave Leave, Employee emp)
         {
-            _dataService.AddLeave(Leave);
+            _dataService.AddLeave(Leave, emp);
         }
         public void AddEmployee(Employee employee)
         {
