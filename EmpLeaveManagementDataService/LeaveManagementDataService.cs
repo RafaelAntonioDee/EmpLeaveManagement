@@ -20,52 +20,47 @@ namespace EmpLeaveManagementDataService
         {
             _dataService.AddEmployee(employee);
         }
-        public void AddAdmin(AdminAccount admin)
-        {
-            _dataService.AddAdmin(admin);
-        }
 
+        // ----------------------------------------------------UPDATE FUNCTIONS----------------------------------------------------
+
+        public void UpdateEmployee(Employee empUpdate, string newPass, string newPosition)
+        {
+            _dataService.UpdateEmployee(empUpdate, newPass, newPosition);
+        }
 
         // ----------------------------------------------------REMOVE FUNCTIONS----------------------------------------------------
         public void RemoveEmployee(Employee employee)
         {
             _dataService.RemoveEmployee(employee);
         }
-        public void RemoveAdmin(AdminAccount admin)
-        {
-            _dataService.RemoveAdmin(admin);
-        }
+
 
 
         // ----------------------------------------------------CHECK EXISTENCE FUNCTIONS----------------------------------------------------
-        public bool EmployeeExists(string empName)
+        public bool EmployeeExists(int ID)
         {
-            return _dataService.EmployeeExists(empName);
+            return _dataService.EmployeeExists(ID);
         }
-        public bool AdminExists(string username)
-        {
-            return _dataService.AdminExists(username);
-        }
+
 
 
         // ----------------------------------------------------GET FUNCTIONS----------------------------------------------------
-        public Employee? GetEmployeeByName(string name)
+        public Employee? GetEmployee(int id)
         {
-            return _dataService.GetEmployeeByName(name);
+            return _dataService.GetEmployee(id);
         }
-        public AdminAccount? GetAdminByUser(string user)
+        public EmployeeLeaveData? GetEmployeeLeaveData(int id)
         {
-            return _dataService.GetAdminByUser(user);
+            return _dataService.GetEmployeeLeaveData(id);
         }
-        public AdminAccount? AccountGetByUsername(string username)
+        public int GetNewLeaveID()
         {
-            return _dataService.AccountGetByUsername(username);
+            return _dataService.GetNewLeaveID();
         }
-        public Employee? GetById(Guid id)
+        public int GetNewEmployeeID()
         {
-            return _dataService.GetById(id);
+            return _dataService.GetNewEmployeeID();
         }
-
 
         // ----------------------------------------------------GET LISTS FUNCTIONS----------------------------------------------------
         public List<FiledLeave> GetLeaves()
@@ -76,10 +71,10 @@ namespace EmpLeaveManagementDataService
         {
             return _dataService.GetEmployees();
         }
-        public List<AdminAccount> GetAdmins()
-        {
-            return _dataService.GetAdmins();
-        }
 
+        public void CalculateAvailableDays(int empID, string TypeOfLeave, int Days)
+        {
+            _dataService.CalculateAvailableDays(empID, TypeOfLeave, Days);
+        }
     }
 }

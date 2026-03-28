@@ -13,7 +13,7 @@ namespace EmpLeaveManagementDataService
     {
         static List<Employee> Employees = new List<Employee>();
         static List<FiledLeave> FiledLeaves = new List<FiledLeave>();
-        static List<AdminAccount> AdminAccounts = new List<AdminAccount>();
+        static List<EmployeeLeaveData> EmployeesLeaveData = new List<EmployeeLeaveData>();
 
         private string _jsonFileName;
 
@@ -28,14 +28,15 @@ namespace EmpLeaveManagementDataService
         {
             RetrieveDataFromJsonFile();
 
-            if (AdminAccounts.Count <= 0)
-            {
-                AdminAccounts.Add(new AdminAccount { AccountID = Guid.NewGuid(), Username = "dee", Password = "dee123" });
-            }
             if (Employees.Count <= 0)
             {
-                Employees.Add(new Employee { EmployeeID = Guid.NewGuid(), Name = "Rafael Antonio Dee" });
-                Employees.Add(new Employee { EmployeeID = Guid.NewGuid(), Name = "Indaleen Quinsayas" });
+                Employee employee1 = new Employee { EmployeeID = 100000, FirstName = "Rafael Antonio", LastName = "Dee", Password = "dee123", Position = "Admin" };
+                Employee employee2 = new Employee { EmployeeID = 100001, FirstName = "Indaleen", LastName = "Quinsayas", Password = "123", Position = "Supervisor" };
+                Employee employee3 = new Employee { EmployeeID = 100002, FirstName = "John", LastName = "Doe", Password = "123", Position = "Sales" };
+
+                AddEmployee(employee1);
+                AddEmployee(employee2);
+                AddEmployee(employee3);
             }
             SaveDataToJsonFile();
         }
@@ -43,7 +44,7 @@ namespace EmpLeaveManagementDataService
         {
             public List<Employee> Employees { get; set; }
             public List<FiledLeave> FiledLeaves { get; set; }
-            public List<AdminAccount> AdminAccounts { get; set; }
+            public List<EmployeeLeaveData> EmployeesLeaveData { get; set; }
         }
         private void SaveDataToJsonFile()
         {
@@ -57,7 +58,7 @@ namespace EmpLeaveManagementDataService
                     {
                         Employees = Employees,
                         FiledLeaves = FiledLeaves,
-                        AdminAccounts = AdminAccounts
+                        EmployeesLeaveData = EmployeesLeaveData
                     }
                 );
             }
@@ -69,7 +70,7 @@ namespace EmpLeaveManagementDataService
             {
                 Employees = new List<Employee>();
                 FiledLeaves = new List<FiledLeave>();
-                AdminAccounts = new List<AdminAccount>();
+                EmployeesLeaveData = new List<EmployeeLeaveData>();
                 return;
             }
 
@@ -81,7 +82,7 @@ namespace EmpLeaveManagementDataService
                 {
                     Employees = new List<Employee>();
                     FiledLeaves = new List<FiledLeave>();
-                    AdminAccounts = new List<AdminAccount>();
+                    EmployeesLeaveData = new List<EmployeeLeaveData>();
                     return;
                 }
 
@@ -92,7 +93,7 @@ namespace EmpLeaveManagementDataService
 
                 Employees = db?.Employees ?? new List<Employee>();
                 FiledLeaves = db?.FiledLeaves ?? new List<FiledLeave>();
-                AdminAccounts = db?.AdminAccounts ?? new List<AdminAccount>();
+                EmployeesLeaveData = db?.EmployeesLeaveData ?? new List<EmployeeLeaveData>();
             }
         }
 
@@ -105,11 +106,17 @@ namespace EmpLeaveManagementDataService
         public void AddEmployee(Employee employee)
         {
             Employees.Add(employee);
+            EmployeeLeaveData data = new EmployeeLeaveData { EmployeeID = employee.EmployeeID };
+            EmployeesLeaveData.Add(data);
             SaveDataToJsonFile();
         }
-        public void AddAdmin(AdminAccount admin)
+
+        // ----------------------------------------------------UPDATE FUNCTIONS----------------------------------------------------
+        public void UpdateEmployee(Employee empUpdate, string newPass, string newPosition)
         {
-            AdminAccounts.Add(admin);
+            empUpdate = GetEmployee(empUpdate.EmployeeID);
+            empUpdate.Password = newPass;
+            empUpdate.Position = newPosition;
             SaveDataToJsonFile();
         }
 
@@ -124,58 +131,92 @@ namespace EmpLeaveManagementDataService
             if (existing != null)
             {
                 Employees.Remove(existing);
-                SaveDataToJsonFile();
             }
-        }
-        public void RemoveAdmin(AdminAccount admin)
-        {
+            SaveDataToJsonFile();
             RetrieveDataFromJsonFile();
 
-            var existing = AdminAccounts.FirstOrDefault(a => a.AccountID == admin.AccountID);
+            EmployeeLeaveData empdata = GetEmployeeLeaveData(employee.EmployeeID);
+            var existingdata = EmployeesLeaveData.FirstOrDefault(e => e.EmployeeID == empdata.EmployeeID);
 
             if (existing != null)
             {
-                AdminAccounts.Remove(existing);
-                SaveDataToJsonFile();
+                EmployeesLeaveData.Remove(existingdata);
             }
-        }
 
+            SaveDataToJsonFile();
+
+        }
 
         // ----------------------------------------------------CHECK EXISTENCE FUNCTIONS----------------------------------------------------
-        public bool EmployeeExists(string empName)
+        public bool EmployeeExists(int id)
         {
             RetrieveDataFromJsonFile();
-            return Employees.Any(a => a.Name == empName);
-        }
-        public bool AdminExists(string username)
-        {
-            RetrieveDataFromJsonFile();
-            return AdminAccounts.Any(a => a.Username == username);
+            return Employees.Any(a => a.EmployeeID == id);
         }
 
 
         // ----------------------------------------------------GET FUNCTIONS----------------------------------------------------
-        public Employee? GetEmployeeByName(string name)
-        {
-            RetrieveDataFromJsonFile();
-            return Employees.FirstOrDefault(a => a.Name == name);
-        }
-        public AdminAccount? GetAdminByUser(string user)
-        {
-            RetrieveDataFromJsonFile();
-            return AdminAccounts.FirstOrDefault(a => a.Username == user);
-        }
-        public AdminAccount? AccountGetByUsername(string username)
-        {
-            RetrieveDataFromJsonFile();
-            return AdminAccounts.FirstOrDefault(a => a.Username == username);
-        }
-        public Employee? GetById(Guid id)
+        public Employee? GetEmployee(int id)
         {
             RetrieveDataFromJsonFile();
             return Employees.FirstOrDefault(a => a.EmployeeID == id);
         }
+        public EmployeeLeaveData? GetEmployeeLeaveData(int id)
+        {
+            RetrieveDataFromJsonFile();
+            return EmployeesLeaveData.FirstOrDefault(a => a.EmployeeID == id);
+        }
+        public int GetNewLeaveID()
+        {
+            RetrieveDataFromJsonFile();
+            if (FiledLeaves.Count == 0)
+            {
+                return 100000;
+            }
+            else
+            {
+                int latest = FiledLeaves.Max(e => e.LeaveID) + 1;
+                return latest;
+            }
+        }
+        public int GetNewEmployeeID()
+        {
+            RetrieveDataFromJsonFile();
+            if (Employees.Count == 0)
+            {
+                return 100000;
+            }
+            else
+            {
+                int latest = Employees.Max(e => e.EmployeeID) + 1;
+                return latest;
+            }
 
+        }
+
+        public void CalculateAvailableDays(int empID, string TypeOfLeave, int Days)
+        {
+            RetrieveDataFromJsonFile();
+            EmployeeLeaveData empLeaveData = GetEmployeeLeaveData(empID);
+
+            switch (TypeOfLeave)
+            {
+                case "Maternity Leave":
+                    empLeaveData.MaternityLeave -= Days;
+                    break;
+                case "Paternity Leave":
+                    empLeaveData.PaternityLeave -= Days;
+                    break;
+                case "Sick Leave":
+                    empLeaveData.SickLeave -= Days;
+                    break;
+                case "Vacation Leave":
+                    empLeaveData.VacationLeave -= Days;
+                    break;
+            }
+            SaveDataToJsonFile();
+
+        }
 
         // ----------------------------------------------------GET LISTS FUNCTIONS----------------------------------------------------
         public List<FiledLeave> GetLeaves()
@@ -188,10 +229,6 @@ namespace EmpLeaveManagementDataService
             RetrieveDataFromJsonFile();
             return Employees;
         }
-        public List<AdminAccount> GetAdmins()
-        {
-            RetrieveDataFromJsonFile();
-            return AdminAccounts;
-        }
+
     }
 }

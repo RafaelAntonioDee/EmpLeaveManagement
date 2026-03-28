@@ -6,76 +6,111 @@ namespace EmpLeaveManagementDataService
     public class LeaveManagementInMemoryData : ILeaveManagementDataService
     {
         static List<Employee> Employees = new List<Employee>();
+        static List<EmployeeLeaveData> EmployeesLeaveData = new List<EmployeeLeaveData>();
         static List<FiledLeave> FiledLeaves = new List<FiledLeave>();
-        static List<AdminAccount> AdminAccounts = new List<AdminAccount>();
 
         // ----------------------------------------------------CONSTRUCTOR----------------------------------------------------
         public LeaveManagementInMemoryData()
         {
-            AdminAccount adminAccount = new AdminAccount { AccountID = Guid.NewGuid(), Username = "dee", Password = "dee123" };
-            Employee employee1 = new Employee { EmployeeID = Guid.NewGuid(), Name = "Rafael Antonio Dee" };
-            Employee employee2 = new Employee { EmployeeID = Guid.NewGuid(), Name = "Indaleen Quinsayas" };
-            AdminAccounts.Add(adminAccount);
-            Employees.Add(employee1);
-            Employees.Add(employee2);
-        }
+            Employee employee1 = new Employee { EmployeeID = 100000, FirstName = "Rafael Antonio", LastName = "Dee", Password = "dee123", Position = "Admin" };
+            Employee employee2 = new Employee { EmployeeID = 100001, FirstName = "Indaleen", LastName = "Quinsayas", Password = "123", Position = "Supervisor" };
+            Employee employee3 = new Employee { EmployeeID = 100002, FirstName = "John", LastName = "Doe", Password = "123", Position = "Sales" };
 
+            AddEmployee(employee1);
+            AddEmployee(employee2);
+            AddEmployee(employee3);
+        }
 
         // ----------------------------------------------------ADD FUNCTIONS----------------------------------------------------
         public void AddLeave(FiledLeave Leave, Employee emp)
         {
             FiledLeaves.Add(Leave);
         }
+
         public void AddEmployee(Employee employee)
         {
             Employees.Add(employee);
+            EmployeeLeaveData data = new EmployeeLeaveData { EmployeeID = employee.EmployeeID };
+            EmployeesLeaveData.Add(data);
         }
-        public void AddAdmin(AdminAccount admin)
-        {
-            AdminAccounts.Add(admin);
-        }
-
 
         // ----------------------------------------------------REMOVE FUNCTIONS----------------------------------------------------
         public void RemoveEmployee(Employee employee)
         {
             Employees.Remove(employee);
-        }
-        public void RemoveAdmin(AdminAccount admin)
-        {
-            AdminAccounts.Remove(admin);
+            EmployeeLeaveData empleavedate = GetEmployeeLeaveData(employee.EmployeeID);
+            EmployeesLeaveData.Remove(empleavedate);
         }
 
+        // ----------------------------------------------------UPDATE FUNCTIONS----------------------------------------------------
+        public void UpdateEmployee(Employee empUpdate, string newPass, string newPosition)
+        {
+            empUpdate.Password = newPass;
+            empUpdate.Position = newPosition;   
+        }
 
         // ----------------------------------------------------CHECK EXISTENCE FUNCTIONS----------------------------------------------------
-        public bool EmployeeExists(string empName)
+        public bool EmployeeExists(int ID)
         {
-            return Employees.Any(a => a.Name == empName);
+            return Employees.Any(a => a.EmployeeID == ID);
         }
-        public bool AdminExists(string username)
-        {
-            return AdminAccounts.Any(a => a.Username == username);
-        }
-
 
         // ----------------------------------------------------GET FUNCTIONS----------------------------------------------------
-        public Employee? GetEmployeeByName(string name)
-        {
-            return Employees.FirstOrDefault(a => a.Name == name);
-        }
-        public AdminAccount? GetAdminByUser(string user)
-        {
-            return AdminAccounts.FirstOrDefault(a => a.Username == user);
-        }
-        public AdminAccount? AccountGetByUsername(string username)
-        {
-            return AdminAccounts.FirstOrDefault(a => a.Username == username);
-        }
-        public Employee? GetById(Guid id)
+
+        public Employee? GetEmployee(int id)
         {
             return Employees.FirstOrDefault(a => a.EmployeeID == id);
         }
+        public EmployeeLeaveData? GetEmployeeLeaveData(int id)
+        {
+            return EmployeesLeaveData.FirstOrDefault(a => a.EmployeeID == id);
+        }
+        public int GetNewLeaveID()
+        {
+            if (FiledLeaves.Count == 0)
+            {
+                return 100000;
+            }
+            else
+            {
+                int latest = FiledLeaves.Max(e => e.LeaveID)+1;
+                return latest;
+            }
+        }
+        public int GetNewEmployeeID()
+        {
+            if (Employees.Count == 0)
+            {
+                return 100000;
+            }
+            else
+            {
+                int latest = Employees.Max(e => e.EmployeeID)+1;
+                return latest;
+            }
 
+        }
+        public void CalculateAvailableDays(int empID, string TypeOfLeave, int Days)
+        {
+            EmployeeLeaveData empLeaveData = GetEmployeeLeaveData(empID);
+
+            switch (TypeOfLeave)
+            {
+                case "Maternity Leave":
+                    empLeaveData.MaternityLeave -= Days;
+                    break;
+                case "Paternity Leave":
+                    empLeaveData.PaternityLeave -= Days;
+                    break;
+                case "Sick Leave":
+                    empLeaveData.SickLeave -= Days;
+                    break;
+                case "Vacation Leave":
+                    empLeaveData.VacationLeave -= Days;
+                    break;
+            }
+
+        }
 
         // ----------------------------------------------------GET LISTS FUNCTIONS----------------------------------------------------
         public List<FiledLeave> GetLeaves()
@@ -86,10 +121,5 @@ namespace EmpLeaveManagementDataService
         {
             return Employees;
         }
-        public List<AdminAccount> GetAdmins()
-        {
-            return AdminAccounts;
-        }
-
     }
 }

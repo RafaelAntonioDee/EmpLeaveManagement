@@ -8,8 +8,8 @@ namespace EmpLeaveManagementAppModel
 {
     public class FiledLeave
     {
-        public Guid LeaveID { get; set; }
-        public Guid EmployeeID { get; set; }
+        public int LeaveID { get; set; }
+        public int EmployeeID { get; set; }
         public string Name { get; set; }
         public string TypeOfLeave { get; set; }
         public int DaysOfLeave { get; set; }

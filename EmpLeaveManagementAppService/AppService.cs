@@ -1,4 +1,5 @@
-﻿using System.Security.Principal;
+﻿using System.Collections.Generic;
+using System.Security.Principal;
 using EmpLeaveManagementAppModel;
 using EmpLeaveManagementDataService;
 
@@ -6,51 +7,34 @@ namespace EmpLeaveManagementAppService
 {
     public class AppService
     {
-        LeaveManagementDataService EmpDataService = new LeaveManagementDataService(new LeaveManagementDBData());
+        LeaveManagementDataService EmpDataService = new LeaveManagementDataService(new LeaveManagementInMemoryData());
 
         // ----------------------------------------------------FILE LEAVE FUNCTIONS----------------------------------------------------
-        public Employee CalculateAvailableLeaveDays(String EmployeeName, String TypeOfLeave, int Days)
+        public void CalculateAvailableLeaveDays(int empID, String TypeOfLeave, int Days)
         {
-            var Emp = EmpDataService.GetEmployeeByName(EmployeeName);
-            while (true)
-            {
-                switch (TypeOfLeave)
-                {
-                    case "Maternity Leave":
-
-                        Emp.MaternityLeave -= Days;
-                        return Emp;
-                    case "Paternity Leave":
-                        Emp.PaternityLeave -= Days;
-                        return Emp;
-                    case "Sick Leave":
-                        Emp.SickLeave -= Days;
-                        return Emp;
-                    case "Vacation Leave":
-                        Emp.VacationLeave -= Days;
-                        return Emp;
-                }
-            }
+            EmpDataService.CalculateAvailableDays(empID, TypeOfLeave, Days);
 
         }
-        public void RecordLeave(FiledLeave Leave, Employee emp)
+        public void RecordLeave(Employee emp, string LeaveType, int LeaveDays, string LeaveDate)
         {
-            EmpDataService.AddLeave(Leave, emp);
+            FiledLeave newLeave = new FiledLeave { LeaveID = EmpDataService.GetNewLeaveID(), EmployeeID = emp.EmployeeID, Name = (emp.FirstName + " " + emp.LastName), TypeOfLeave = LeaveType, DaysOfLeave = LeaveDays, DateOfLeave = LeaveDate };
+
+            EmpDataService.AddLeave(newLeave, emp);
         }
-        public int checkDaysOfLeaveAvailable(string LeaveType, Employee emp)
+        public int checkDaysOfLeaveAvailable(string LeaveType, EmployeeLeaveData EmpLeaveData)
         {
             while (true)
             {
                 switch (LeaveType)
                 {
                     case "Maternity Leave":
-                        return emp.MaternityLeave;
+                        return EmpLeaveData.MaternityLeave;
                     case "Paternity Leave":
-                        return emp.PaternityLeave;
+                        return EmpLeaveData.PaternityLeave;
                     case "Sick Leave":
-                        return emp.SickLeave;
+                        return EmpLeaveData.SickLeave;
                     case "Vacation Leave":
-                        return emp.VacationLeave;
+                        return EmpLeaveData.VacationLeave;
                 }
             }
         }
@@ -65,62 +49,63 @@ namespace EmpLeaveManagementAppService
         {
             return EmpDataService.GetEmployees();
         }
-        public List<AdminAccount> getAdmins()
+
+        public Employee GetEmployee(int EmpID)
         {
-            return EmpDataService.GetAdmins();
+            return EmpDataService.GetEmployee(EmpID);
         }
-        public Employee GetEmployee(string EmpName)
+        public EmployeeLeaveData GetEmployeeLeaveData(int EmpID)
         {
-            return EmpDataService.GetEmployeeByName(EmpName);
+            return EmpDataService.GetEmployeeLeaveData(EmpID);
         }
 
 
         // ----------------------------------------------------CHECK FUNCTIONS----------------------------------------------------
-        public bool checkEmployee(string EmpName)
+        public bool checkEmployee(int empID)
         {
-            return EmpDataService.EmployeeExists(EmpName);
-        }
-        public bool checkAdmin(string username)
-        {
-            return EmpDataService.AdminExists(username);
+            return EmpDataService.EmployeeExists(empID);
         }
 
 
         // ----------------------------------------------------ADD FUNCTIONS----------------------------------------------------
-        public void AddEmployee(string EmpName)
+        public void AddEmployee(string fName, string lName, string Password, string Position)
         {
-            Employee newEmployee = new Employee { EmployeeID = Guid.NewGuid(), Name = EmpName };
+            Employee newEmployee = new Employee { EmployeeID = EmpDataService.GetNewEmployeeID(), FirstName = fName, LastName = lName, Password = Password, Position = Position };
             EmpDataService.AddEmployee(newEmployee);
         }
-        public void AddAdmin(string user, string pass)
-        {
-            AdminAccount newAdmin = new AdminAccount { AccountID = Guid.NewGuid(), Username = user, Password = pass };
-            EmpDataService.AddAdmin(newAdmin);
-        }
 
+        // ----------------------------------------------------UPDATE FUNCTIONS----------------------------------------------------
+        public void UpdateEmployee(Employee empUpdate, string newPass, string newPosition)
+        {
+            EmpDataService.UpdateEmployee(empUpdate, newPass, newPosition);
+        }
 
         // ----------------------------------------------------REMOVE FUNCTIONS----------------------------------------------------
-        public void RemoveEmployee(string EmpName)
+        public void RemoveEmployee(int ID)
         {
-            Employee emp = EmpDataService.GetEmployeeByName(EmpName);
+            Employee emp = EmpDataService.GetEmployee(ID);
             EmpDataService.RemoveEmployee(emp);
-        }
-        public void RemoveAdmin(string user)
-        {
-            AdminAccount admin = EmpDataService.GetAdminByUser(user);
-            EmpDataService.RemoveAdmin(admin);
         }
 
 
         // ----------------------------------------------------LOGIN FUNCTION----------------------------------------------------
-        public bool Authenticate(string username, string password)
+        public bool Authenticate(int empID, string password)
         {
-            var account = EmpDataService.AccountGetByUsername(username);
+            var account = EmpDataService.GetEmployee(empID);
 
             if (account == null)
                 return false;
 
             return account.Password == password;
+        }
+        public bool isAdmin(int empID)
+        {
+            var account = EmpDataService.GetEmployee(empID);
+
+            if (account == null)
+                return false;
+
+            return account.Position == "Admin";
         }
     }
 }

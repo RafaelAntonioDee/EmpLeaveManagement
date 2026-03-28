@@ -11,17 +11,16 @@ namespace EmpLeaveManagementDataService
     {
         void AddLeave(FiledLeave Leave, Employee emp);
         void AddEmployee(Employee employee);
-        void AddAdmin(AdminAccount admin);
+        void UpdateEmployee(Employee employee, string newPass, string newPosition);
         void RemoveEmployee(Employee employee);
-        void RemoveAdmin(AdminAccount admin);
-        bool EmployeeExists(string empName);
-        bool AdminExists(string username);
-        Employee? GetEmployeeByName(string name);
-        AdminAccount? GetAdminByUser(string user);
-        AdminAccount? AccountGetByUsername(string username);
-        Employee? GetById(Guid id);
+        int GetNewLeaveID();
+        int GetNewEmployeeID();
+
+        bool EmployeeExists(int id);
+        Employee? GetEmployee(int id);
+        EmployeeLeaveData? GetEmployeeLeaveData(int id);
         List<FiledLeave> GetLeaves();
         List<Employee> GetEmployees();
-        List<AdminAccount> GetAdmins();
+        void CalculateAvailableDays(int empID, string TypeOfLeave, int Days);
     }
 }

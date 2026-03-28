@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using EmpLeaveManagementAppModel;
 using Microsoft.Data.SqlClient;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace EmpLeaveManagementDataService
 {
@@ -23,21 +24,17 @@ namespace EmpLeaveManagementDataService
 
         private void AddSeeds()
         {
-            var existingAcc = GetAdmins();
             var existingLeaves = GetLeaves();
             var existingEmps = GetEmployees();
 
-            if (existingAcc.Count <= 0)
-            {
-                AdminAccount adminAcc = new AdminAccount { AccountID = Guid.NewGuid(), Username = "dee", Password = "dee123" };
-                AddAdmin(adminAcc);
-            }
             if (existingEmps.Count <= 0)
             {
-                Employee emp1 = new Employee { EmployeeID = Guid.NewGuid(), Name = "Rafael Antonio Dee" };
-                Employee emp2 = new Employee { EmployeeID = Guid.NewGuid(), Name = "Indaleen Quinsayas" };
-                AddEmployee(emp1);
-                AddEmployee(emp2);
+                Employee employee1 = new Employee { EmployeeID = 100000, FirstName = "Rafael Antonio", LastName = "Dee", Password = "dee123", Position = "Admin" };
+                Employee employee2 = new Employee { EmployeeID = 100001, FirstName = "Indaleen", LastName = "Quinsayas", Password = "123", Position = "Supervisor" };
+                Employee employee3 = new Employee { EmployeeID = 100002, FirstName = "John", LastName = "Doe", Password = "123", Position = "Sales" };
+                AddEmployee(employee1);
+                AddEmployee(employee2);
+                AddEmployee(employee3);
             }
         }
 
@@ -45,18 +42,6 @@ namespace EmpLeaveManagementDataService
         public void AddLeave(FiledLeave Leave, Employee emp)
         {
             sqlConnection.Open();
-
-            var updateStatement = $"UPDATE tblEmployees SET MaternityLeave = @MaternityLeave, PaternityLeave = @PaternityLeave, VacationLeave = @VacationLeave, SickLeave = @SickLeave WHERE EmployeeID = @EmployeeID";
-
-            SqlCommand updateCommand = new SqlCommand(updateStatement, sqlConnection);
-
-            updateCommand.Parameters.AddWithValue("@MaternityLeave", emp.MaternityLeave);
-            updateCommand.Parameters.AddWithValue("@PaternityLeave", emp.PaternityLeave);
-            updateCommand.Parameters.AddWithValue("@VacationLeave", emp.VacationLeave);
-            updateCommand.Parameters.AddWithValue("@SickLeave", emp.SickLeave);
-            updateCommand.Parameters.AddWithValue("@EmployeeID", emp.EmployeeID);
-            updateCommand.ExecuteNonQuery();
-
             var insertStatement = "INSERT INTO tblFiledLeaves VALUES (@LeaveID, @EmployeeID, @Name, @TypeOfLeave, @DaysOfLeave, @DateOfLeave)";
 
             SqlCommand cmd = new SqlCommand(insertStatement, sqlConnection);
@@ -74,38 +59,57 @@ namespace EmpLeaveManagementDataService
         }
         public void AddEmployee(Employee employee)
         {
-            var insertStatement = "INSERT INTO tblEmployees VALUES (@EmployeeID, @Name, @MaternityLeave, @PaternityLeave, @VacationLeave, @SickLeave)";
-
-            SqlCommand cmd = new SqlCommand(insertStatement, sqlConnection);
-
-            cmd.Parameters.AddWithValue("@EmployeeID", employee.EmployeeID);
-            cmd.Parameters.AddWithValue("@Name", employee.Name);
-            cmd.Parameters.AddWithValue("@MaternityLeave", employee.MaternityLeave);
-            cmd.Parameters.AddWithValue("@PaternityLeave", employee.PaternityLeave);
-            cmd.Parameters.AddWithValue("@VacationLeave", employee.VacationLeave);
-            cmd.Parameters.AddWithValue("@SickLeave", employee.SickLeave);
             sqlConnection.Open();
 
-            cmd.ExecuteNonQuery();
+            var insertEmployeeStatement = "INSERT INTO tblEmployees VALUES (@EmployeeID, @FirstName, @LastName, @Password, @Position)";
+
+            SqlCommand cmdEmployee = new SqlCommand(insertEmployeeStatement, sqlConnection);
+
+            cmdEmployee.Parameters.AddWithValue("@EmployeeID", employee.EmployeeID);
+            cmdEmployee.Parameters.AddWithValue("@FirstName", employee.FirstName);
+            cmdEmployee.Parameters.AddWithValue("@LastName", employee.LastName);
+            cmdEmployee.Parameters.AddWithValue("@Password", employee.Password);
+            cmdEmployee.Parameters.AddWithValue("@Position", employee.Position);
+
+            cmdEmployee.ExecuteNonQuery();
+            sqlConnection.Close();
+
+            EmployeeLeaveData empLeaveData = new EmployeeLeaveData();
+
+            sqlConnection.Open();
+
+            var insertLeaveDataStatement = "INSERT INTO tblEmployeeLeaveData VALUES (@EmployeeID, @MaternityLeave, @PaternityLeave, @VacationLeave, @SickLeave)";
+
+            SqlCommand cmdLeaveData = new SqlCommand(insertLeaveDataStatement, sqlConnection);
+
+            cmdLeaveData.Parameters.AddWithValue("@EmployeeID", employee.EmployeeID);
+            cmdLeaveData.Parameters.AddWithValue("@MaternityLeave", empLeaveData.MaternityLeave);
+            cmdLeaveData.Parameters.AddWithValue("@PaternityLeave", empLeaveData.PaternityLeave);
+            cmdLeaveData.Parameters.AddWithValue("@VacationLeave", empLeaveData.VacationLeave);
+            cmdLeaveData.Parameters.AddWithValue("@SickLeave", empLeaveData.SickLeave);
+
+            cmdLeaveData.ExecuteNonQuery();
 
             sqlConnection.Close();
         }
-        public void AddAdmin(AdminAccount admin)
+
+        // ----------------------------------------------------UPDATE FUNCTIONS----------------------------------------------------
+        public void UpdateEmployee(Employee employee, string newPass, string newPosition)
         {
-            var insertStatement = "INSERT INTO tblAdminAccounts VALUES (@AccountID, @Username, @Password)";
-
-            SqlCommand cmd = new SqlCommand(insertStatement, sqlConnection);
-
-            cmd.Parameters.AddWithValue("@AccountID", admin.AccountID);
-            cmd.Parameters.AddWithValue("@Username", admin.Username);
-            cmd.Parameters.AddWithValue("@Password", admin.Password);
             sqlConnection.Open();
 
-            cmd.ExecuteNonQuery();
+            var updateStatement = $"UPDATE tblEmployees SET Password = @Password, Position = @Position WHERE EmployeeID = @EmployeeID";
+
+            SqlCommand updateCommand = new SqlCommand(updateStatement, sqlConnection);
+
+            updateCommand.Parameters.AddWithValue("@Password", newPass);
+            updateCommand.Parameters.AddWithValue("@Position", newPosition);
+            updateCommand.Parameters.AddWithValue("@EmployeeID", employee.EmployeeID);
+
+            updateCommand.ExecuteNonQuery();
 
             sqlConnection.Close();
         }
-
 
         // ----------------------------------------------------REMOVE FUNCTIONS----------------------------------------------------
         public void RemoveEmployee(Employee employee)
@@ -120,14 +124,12 @@ namespace EmpLeaveManagementDataService
             cmd.ExecuteNonQuery();
 
             sqlConnection.Close();
-        }
-        public void RemoveAdmin(AdminAccount admin)
-        {
-            var deleteStatement = "DELETE FROM tblAdminAccounts WHERE AccountID = @AccountID";
 
-            SqlCommand cmd = new SqlCommand(deleteStatement, sqlConnection);
+            deleteStatement = "DELETE FROM tblEmployeeLeaveData WHERE EmployeeID = @EmployeeID";
 
-            cmd.Parameters.AddWithValue("@AccountID", admin.AccountID);
+             cmd = new SqlCommand(deleteStatement, sqlConnection);
+
+            cmd.Parameters.AddWithValue("@EmployeeID", employee.EmployeeID);
             sqlConnection.Open();
 
             cmd.ExecuteNonQuery();
@@ -135,118 +137,16 @@ namespace EmpLeaveManagementDataService
             sqlConnection.Close();
         }
 
-
         // ----------------------------------------------------CHECK EXISTENCE FUNCTIONS----------------------------------------------------
-        public bool EmployeeExists(string empName)
+        public bool EmployeeExists(int id)
         {
-            var selectStatement = "SELECT * FROM tblEmployees WHERE Name = @Name";
-            SqlCommand cmd = new SqlCommand(selectStatement, sqlConnection);
-            cmd.Parameters.AddWithValue("@Name", empName);
-            sqlConnection.Open();
-            SqlDataReader reader = cmd.ExecuteReader();
-
-            var emp = new Employee();
-
-            while (reader.Read())
-            {
-                emp.EmployeeID = Guid.Parse(reader["EmployeeID"].ToString());
-                emp.Name = reader["Name"].ToString();
-                emp.MaternityLeave = int.Parse(reader["MaternityLeave"].ToString());
-                emp.PaternityLeave = int.Parse(reader["PaternityLeave"].ToString());
-                emp.VacationLeave = int.Parse(reader["VacationLeave"].ToString());
-                emp.SickLeave = int.Parse(reader["SickLeave"].ToString());
-            }
-
-            sqlConnection.Close();
-            return emp.Name != null;
-        }
-        public bool AdminExists(string username)
-        {
-            var selectStatement = "SELECT * FROM tblAdminAccounts WHERE Username = @Username";
-            SqlCommand cmd = new SqlCommand(selectStatement, sqlConnection);
-            cmd.Parameters.AddWithValue("@Username", username);
-            sqlConnection.Open();
-            SqlDataReader reader = cmd.ExecuteReader();
-
-            var admin = new AdminAccount();
-
-            while (reader.Read())
-            {
-                admin.AccountID = Guid.Parse(reader["AccountID"].ToString());
-                admin.Username = reader["Username"].ToString();
-                admin.Password = reader["Password"].ToString();
-            }
-
-            sqlConnection.Close();
-            return admin.Username != null;
+            Employee emp = GetEmployee(id);
+            return emp != null;
         }
 
 
         // ----------------------------------------------------GET FUNCTIONS----------------------------------------------------
-        public Employee? GetEmployeeByName(string name)
-        {
-            var selectStatement = "SELECT * FROM tblEmployees WHERE Name = @Name";
-            SqlCommand cmd = new SqlCommand(selectStatement, sqlConnection);
-            cmd.Parameters.AddWithValue("@Name", name);
-            sqlConnection.Open();
-            SqlDataReader reader = cmd.ExecuteReader();
-
-            var emp = new Employee();
-
-            while (reader.Read())
-            {
-                emp.EmployeeID = Guid.Parse(reader["EmployeeID"].ToString());
-                emp.Name = reader["Name"].ToString();
-                emp.MaternityLeave = int.Parse(reader["MaternityLeave"].ToString());
-                emp.PaternityLeave = int.Parse(reader["PaternityLeave"].ToString());
-                emp.VacationLeave = int.Parse(reader["VacationLeave"].ToString());
-                emp.SickLeave = int.Parse(reader["SickLeave"].ToString());
-            }
-
-            sqlConnection.Close();
-            return emp;
-        }
-        public AdminAccount? GetAdminByUser(string user)
-        {
-            var selectStatement = "SELECT * FROM tblAdminAccounts WHERE Username = @Username";
-            SqlCommand cmd = new SqlCommand(selectStatement, sqlConnection);
-            cmd.Parameters.AddWithValue("@UserName", user);
-            sqlConnection.Open();
-            SqlDataReader reader = cmd.ExecuteReader();
-
-            var account = new AdminAccount();
-
-            while (reader.Read())
-            {
-                account.AccountID = Guid.Parse(reader["AccountID"].ToString());
-                account.Username = reader["Username"].ToString();
-                account.Password = reader["Password"].ToString();
-            }
-
-            sqlConnection.Close();
-            return account;
-        }
-        public AdminAccount? AccountGetByUsername(string username)
-        {
-            var selectStatement = "SELECT * FROM tblAdminAccounts WHERE Username = @Username";
-            SqlCommand cmd = new SqlCommand(selectStatement, sqlConnection);
-            cmd.Parameters.AddWithValue("@UserName", username);
-            sqlConnection.Open();
-            SqlDataReader reader = cmd.ExecuteReader();
-
-            var account = new AdminAccount();
-
-            while (reader.Read())
-            {
-                account.AccountID = Guid.Parse(reader["AccountID"].ToString());
-                account.Username = reader["Username"].ToString();
-                account.Password = reader["Password"].ToString();
-            }
-
-            sqlConnection.Close();
-            return account;
-        }
-        public Employee? GetById(Guid id)
+        public Employee? GetEmployee(int id)
         {
             var selectStatement = "SELECT * FROM tblEmployees WHERE EmployeeID = @EmployeeID";
             SqlCommand cmd = new SqlCommand(selectStatement, sqlConnection);
@@ -254,20 +154,122 @@ namespace EmpLeaveManagementDataService
             sqlConnection.Open();
             SqlDataReader reader = cmd.ExecuteReader();
 
+            if (!reader.HasRows)
+            {
+                sqlConnection.Close();
+                return null;
+            }
+
             var emp = new Employee();
 
             while (reader.Read())
             {
-                emp.EmployeeID = Guid.Parse(reader["EmployeeID"].ToString());
-                emp.Name = reader["Name"].ToString();
-                emp.MaternityLeave = int.Parse(reader["MaternityLeave"].ToString());
-                emp.PaternityLeave = int.Parse(reader["PaternityLeave"].ToString());
-                emp.VacationLeave = int.Parse(reader["VacationLeave"].ToString());
-                emp.SickLeave = int.Parse(reader["SickLeave"].ToString());
+                emp.EmployeeID = int.Parse(reader["EmployeeID"].ToString());
+                emp.FirstName = reader["FirstName"].ToString();
+                emp.LastName = reader["LastName"].ToString();
+                emp.Password = reader["Password"].ToString();
+                emp.Position = reader["Position"].ToString();
             }
+
 
             sqlConnection.Close();
             return emp;
+        }
+        public EmployeeLeaveData? GetEmployeeLeaveData(int empid)
+        {
+            var selectStatement = "SELECT * FROM tblEmployeeLeaveData WHERE EmployeeID = @EmployeeID";
+            SqlCommand cmd = new SqlCommand(selectStatement, sqlConnection);
+            cmd.Parameters.AddWithValue("@EmployeeID", empid);
+            sqlConnection.Open();
+            SqlDataReader reader = cmd.ExecuteReader();
+
+            var empLeaveData = new EmployeeLeaveData();
+
+            while (reader.Read())
+            {
+                empLeaveData.EmployeeID = int.Parse(reader["EmployeeID"].ToString());
+                empLeaveData.MaternityLeave = int.Parse(reader["MaternityLeave"].ToString());
+                empLeaveData.PaternityLeave = int.Parse(reader["PaternityLeave"].ToString());
+                empLeaveData.VacationLeave = int.Parse(reader["VacationLeave"].ToString());
+                empLeaveData.SickLeave = int.Parse(reader["SickLeave"].ToString());
+            }
+
+
+            sqlConnection.Close();
+            return empLeaveData;
+        }
+
+        public int GetNewLeaveID()
+        {
+            int newId;
+
+            var selectStatement = @"SELECT ISNULL(MAX(LeaveID), 99999) + 1 FROM tblFiledLeaves";
+
+            using (SqlCommand cmd = new SqlCommand(selectStatement, sqlConnection))
+            {
+                sqlConnection.Open();
+                newId = Convert.ToInt32(cmd.ExecuteScalar());
+                sqlConnection.Close();
+            }
+
+            return newId;
+        }
+       
+
+        public int GetNewEmployeeID()
+        {
+            int newId;
+
+            var selectStatement = @"SELECT ISNULL(MAX(EmployeeID), 99999) + 1 FROM tblEmployees";
+
+            using (SqlCommand cmd = new SqlCommand(selectStatement, sqlConnection))
+            {
+                sqlConnection.Open();
+                newId = Convert.ToInt32(cmd.ExecuteScalar());
+                sqlConnection.Close();
+            }
+
+            return newId;
+        }
+
+        public void CalculateAvailableDays(int empID, string TypeOfLeave, int Days)
+        {
+            TypeOfLeave = TypeOfLeave.Replace(" ", "");
+            EmployeeLeaveData empLeaveData = GetEmployeeLeaveData(empID);
+            sqlConnection.Open();
+
+            var updateStatement = $"UPDATE tblEmployeeLeaveData SET {TypeOfLeave} = @newLeaveDays WHERE EmployeeID = @EmployeeID";
+
+            SqlCommand updateCommand = new SqlCommand(updateStatement, sqlConnection);
+
+            switch (TypeOfLeave)
+            {
+                case "MaternityLeave":
+                    updateCommand.Parameters.AddWithValue("@newLeaveDays", (empLeaveData.MaternityLeave -= Days));
+                    updateCommand.Parameters.AddWithValue("@EmployeeID", empID);
+
+                    break;
+                case "PaternityLeave":
+                    updateCommand.Parameters.AddWithValue("@newLeaveDays", (empLeaveData.PaternityLeave -= Days));
+                    updateCommand.Parameters.AddWithValue("@EmployeeID", empID);
+
+                    break;
+                case "SickLeave":
+                    updateCommand.Parameters.AddWithValue("@newLeaveDays", (empLeaveData.VacationLeave -= Days));
+                    updateCommand.Parameters.AddWithValue("@EmployeeID", empID);
+
+                    break;
+                case "VacationLeave":
+                    updateCommand.Parameters.AddWithValue("@newLeaveDays", (empLeaveData.SickLeave -= Days));
+                    updateCommand.Parameters.AddWithValue("@EmployeeID", empID);
+
+                    break;
+            }
+
+            updateCommand.ExecuteNonQuery();
+
+            sqlConnection.Close();
+
         }
 
 
@@ -287,8 +289,8 @@ namespace EmpLeaveManagementDataService
             while (reader.Read())
             {
                 FiledLeave leave = new FiledLeave();
-                leave.LeaveID = Guid.Parse(reader["LeaveID"].ToString());
-                leave.EmployeeID = Guid.Parse(reader["EmployeeID"].ToString());
+                leave.LeaveID = int.Parse(reader["LeaveID"].ToString());
+                leave.EmployeeID = int.Parse(reader["EmployeeID"].ToString());
                 leave.Name = reader["Name"].ToString();
                 leave.TypeOfLeave = reader["TypeOfLeave"].ToString();
                 leave.DaysOfLeave = int.Parse(reader["DaysOfLeave"].ToString());
@@ -315,12 +317,11 @@ namespace EmpLeaveManagementDataService
             while (reader.Read())
             {
                 Employee emp = new Employee();
-                emp.EmployeeID = Guid.Parse(reader["EmployeeID"].ToString());
-                emp.Name = reader["Name"].ToString();
-                emp.MaternityLeave = int.Parse(reader["MaternityLeave"].ToString());
-                emp.PaternityLeave = int.Parse(reader["PaternityLeave"].ToString());
-                emp.VacationLeave = int.Parse(reader["VacationLeave"].ToString());
-                emp.SickLeave = int.Parse(reader["SickLeave"].ToString());
+                emp.EmployeeID = int.Parse(reader["EmployeeID"].ToString());
+                emp.FirstName = reader["FirstName"].ToString();
+                emp.LastName = reader["LastName"].ToString();
+                emp.Password = reader["Password"].ToString();
+                emp.Position = reader["Position"].ToString();
 
                 employees.Add(emp);
             }
@@ -328,30 +329,7 @@ namespace EmpLeaveManagementDataService
             sqlConnection.Close();
             return employees;
         }
-        public List<AdminAccount> GetAdmins()
-        {
-            string selectStatement = "SELECT * FROM tblAdminAccounts";
 
-            SqlCommand cmd = new SqlCommand(selectStatement, sqlConnection);
 
-            sqlConnection.Open();
-
-            SqlDataReader reader = cmd.ExecuteReader();
-
-            var accounts = new List<AdminAccount>();
-
-            while (reader.Read())
-            {
-                AdminAccount account = new AdminAccount();
-                account.AccountID = Guid.Parse(reader["AccountID"].ToString());
-                account.Username = reader["Username"].ToString();
-                account.Password = reader["Password"].ToString();
-
-                accounts.Add(account);
-            }
-
-            sqlConnection.Close();
-            return accounts;
-        }
     }
 }
