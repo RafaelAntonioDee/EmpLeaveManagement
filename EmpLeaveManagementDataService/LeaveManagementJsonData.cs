@@ -19,8 +19,7 @@ namespace EmpLeaveManagementDataService
 
         public LeaveManagementJsonData()
         {
-            _jsonFileName = $"{AppDomain.CurrentDomain.BaseDirectory}/DataStorage.json";
-
+            _jsonFileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Data\DataStorage.json");
             PopulateJsonFile();
         }
 

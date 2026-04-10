@@ -38,6 +38,18 @@ namespace EmpLeaveManagementAppService
                 }
             }
         }
+        public bool isLeaveAvailable(int EmpID)
+        {
+            EmployeeLeaveData EmpLeaveData = GetEmployeeLeaveData(EmpID);
+            if (EmpLeaveData.MaternityLeave == 0 && EmpLeaveData.PaternityLeave == 0 && EmpLeaveData.SickLeave == 0 && EmpLeaveData.VacationLeave == 0)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
 
 
         // ----------------------------------------------------GET FUNCTIONS----------------------------------------------------
@@ -59,6 +71,15 @@ namespace EmpLeaveManagementAppService
             return EmpDataService.GetEmployeeLeaveData(EmpID);
         }
 
+        public int GetAdminCount()
+        {
+            var employees = GetEmployees();
+
+            int adminCount = employees.Count(e => e.Position == "Admin");
+
+            return adminCount;
+        }
+
 
         // ----------------------------------------------------CHECK FUNCTIONS----------------------------------------------------
         public bool checkEmployee(int empID)
@@ -68,10 +89,11 @@ namespace EmpLeaveManagementAppService
 
 
         // ----------------------------------------------------ADD FUNCTIONS----------------------------------------------------
-        public void AddEmployee(string fName, string lName, string Password, string Position)
+        public int AddEmployee(string fName, string lName, string Password, string Position)
         {
             Employee newEmployee = new Employee { EmployeeID = EmpDataService.GetNewEmployeeID(), FirstName = fName, LastName = lName, Password = Password, Position = Position };
             EmpDataService.AddEmployee(newEmployee);
+            return newEmployee.EmployeeID;
         }
 
         // ----------------------------------------------------UPDATE FUNCTIONS----------------------------------------------------
@@ -87,6 +109,17 @@ namespace EmpLeaveManagementAppService
             EmpDataService.RemoveEmployee(emp);
         }
 
+        public bool RemovedOwnAccount(int RemovingEmployeeID, int EmployeeID)
+        {
+            if (RemovingEmployeeID == EmployeeID)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         // ----------------------------------------------------LOGIN FUNCTION----------------------------------------------------
         public bool Authenticate(int empID, string password)

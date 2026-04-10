@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Reflection.Metadata.Ecma335;
 using System.Security.Principal;
 using EmpLeaveManagementAppModel;
@@ -23,7 +24,10 @@ internal class EmpLeaveManagement
                 {
                     if (EmployeeAppService.isAdmin(emp.EmployeeID))
                     {
-                        AdminDashboard();
+                        if (!AdminDashboard())
+                        {
+                            continue;
+                        }
                     }
                     else
                     {
@@ -132,7 +136,7 @@ internal class EmpLeaveManagement
         }
     }
 
-    static void AdminDashboard()
+    static bool AdminDashboard()
     {
         while (true)
         {
@@ -158,11 +162,14 @@ internal class EmpLeaveManagement
             }
             else if (Choice == 4)
             {
-                manageEmployees();
+                if (!manageEmployees())
+                {
+                    return false;
+                }
             }
             else if (Choice == 5)
             {
-                break;
+                return true;
             }
             else
             {
@@ -174,15 +181,22 @@ internal class EmpLeaveManagement
     // ----------------------------------------------------EMPLOYEE FUNCTIONS----------------------------------------------------
     static void EmployeeFileLeave()
     {
-        Console.WriteLine("======================== FILE LEAVE ========================");
+        if (EmployeeAppService.isLeaveAvailable(emp.EmployeeID))
+        {
+            Console.WriteLine("======================== FILE LEAVE ========================");
 
-        String LeaveType = setLeaveType(emp.EmployeeID);
-        int LeaveDays = setDaysOfLeave(LeaveType, emp.EmployeeID);
-        String LeaveDate = setDateOfLeave();
+            String LeaveType = setLeaveType(emp.EmployeeID);
+            int LeaveDays = setDaysOfLeave(LeaveType, emp.EmployeeID);
+            String LeaveDate = setDateOfLeave();
 
-        EmployeeAppService.CalculateAvailableLeaveDays(emp.EmployeeID, LeaveType, LeaveDays);
+            EmployeeAppService.CalculateAvailableLeaveDays(emp.EmployeeID, LeaveType, LeaveDays);
 
-        EmployeeAppService.RecordLeave(emp, LeaveType, LeaveDays, LeaveDate);
+            EmployeeAppService.RecordLeave(emp, LeaveType, LeaveDays, LeaveDate);
+        }
+        else
+        {
+            Console.WriteLine("You have reached the maximum leaves available per year");
+        }
     }
 
     static void EmployeeCheckLeaves()
@@ -311,7 +325,7 @@ internal class EmpLeaveManagement
 
 
     // ----------------------------------------------------ADMIN FUNCTIONS----------------------------------------------------
-    static void manageEmployees()
+    static bool manageEmployees()
     {
         while (true)
         {
@@ -336,16 +350,21 @@ internal class EmpLeaveManagement
             }
             else if (Choice == 4)
             {
-                removeEmployees();
+                if (!removeEmployees())
+                {
+                    return false;
+                }
             }
             else if (Choice == 5)
             {
-                break;
+                return true;
             }
             else
             {
                 Console.WriteLine("Option does not exist, choose again.\n");
             }
+
+
         }
     }
 
@@ -371,14 +390,14 @@ internal class EmpLeaveManagement
 
             EmployeeAppService.UpdateEmployee(empUpdate, newPass, newPosition);
 
-            Console.WriteLine("Emplyoee Updated!\n");
+            Console.WriteLine("Employee Updated!\n");
         }
         else
         {
             Console.WriteLine("Employee does not exist.\n");
         }
     }
-    static void removeEmployees()
+    static bool removeEmployees()
     {
         Console.Write("Remove Employee. Input ID: ");
         int ID = Convert.ToInt32(Console.ReadLine());
@@ -386,14 +405,31 @@ internal class EmpLeaveManagement
 
         if (EmployeeAppService.checkEmployee(ID))
         {
-            EmployeeAppService.RemoveEmployee(ID);
-            Console.WriteLine("Emplyoee Removed!\n");
+            Employee RemovingEmp = EmployeeAppService.GetEmployee(ID);
 
+            if (RemovingEmp.Position == "Admin" && EmployeeAppService.GetAdminCount() <= 1)
+            {
+                Console.WriteLine("This account is the only admin and cant be removed.\n");
+                return true;
+            }
+
+            EmployeeAppService.RemoveEmployee(ID);
+
+            if (EmployeeAppService.RemovedOwnAccount(ID, emp.EmployeeID))
+            {
+                Console.WriteLine("You removed yourself. Logging out...\n");
+                return false;
+            }
+
+            Console.WriteLine("Employee Removed!\n");
+            return true;
         }
         else
         {
             Console.WriteLine("Employee does not exist.\n");
+            return true;
         }
+
     }
 
     static void addEmployees()
@@ -410,9 +446,9 @@ internal class EmpLeaveManagement
         Console.Write("Position: ");
         string position = Console.ReadLine();
 
-        EmployeeAppService.AddEmployee(first, last, pass, position);
-        Console.WriteLine("Emplyoee Added!\n");
-
+        int empID = EmployeeAppService.AddEmployee(first, last, pass, position);
+        Console.WriteLine("\nEmployee Added!");
+        Console.WriteLine("Employee ID: " + empID + "\n");
     }
 
     static void showFiledLeaves()
