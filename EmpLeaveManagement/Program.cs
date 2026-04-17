@@ -202,17 +202,22 @@ internal class EmpLeaveManagement
     static void EmployeeCheckLeaves()
     {
         var leaves = EmployeeAppService.GetLeaves();
+        int leaveCount = 0;
 
         if (leaves.Count > 0)
         {
 
             foreach (var leave in leaves)
-            {
-                int leaveCount = 0;
+            { 
                 if (leave.EmployeeID == emp.EmployeeID)
                 {
+                    if (leaveCount == 0)
+                    {
+                        Console.WriteLine("Leave ID\tType of Leave\t\tDays\t\tDate \n");
+                    }
+  
+                    Console.WriteLine($"{leave.LeaveID}\t|\t{leave.TypeOfLeave}\t|\t{leave.DaysOfLeave}\t|\t{leave.DateOfLeave}");
                     leaveCount++;
-                    Console.WriteLine($"Type of Leave: {leave.TypeOfLeave}, Days: {leave.DaysOfLeave}, Date: {leave.DateOfLeave}");
                 }
                 if (leaveCount == 0)
                 {
@@ -235,7 +240,7 @@ internal class EmpLeaveManagement
         while (true)
         {
             EmployeeLeaveData EmpLeaveData = EmployeeAppService.GetEmployeeLeaveData(empID);
-            Console.WriteLine($"Input\t\tType of Leave\t\tAvailable Days\n" +
+            Console.WriteLine("Input\t\tType of Leave\t\tAvailable Days \n" +
             $"[1]\t|\tMaternity Leave\t|\t{EmpLeaveData.MaternityLeave} \n" +
             $"[2]\t|\tPaternity Leave\t|\t{EmpLeaveData.PaternityLeave} \n" +
             $"[3]\t|\tSick Leave\t|\t{EmpLeaveData.SickLeave} \n" +
@@ -346,7 +351,10 @@ internal class EmpLeaveManagement
             }
             else if (Choice == 3)
             {
-                updateEmployee();
+                if (!updateEmployee())
+                {
+                    return false;
+                }
             }
             else if (Choice == 4)
             {
@@ -368,7 +376,7 @@ internal class EmpLeaveManagement
         }
     }
 
-    static void updateEmployee()
+    static bool updateEmployee()
     {
         Console.Write("Update Employee. Input ID: ");
         int ID = Convert.ToInt32(Console.ReadLine());
@@ -384,8 +392,21 @@ internal class EmpLeaveManagement
             Console.Write("Update Password: ");
             string newPass = Console.ReadLine();
 
-            Console.Write("Update Position: ");
-            string newPosition = Console.ReadLine();
+            string newPosition = empUpdate.Position;
+            if (!EmployeeAppService.AdminCountCheck(ID))
+            {
+                Console.Write("Update Position: ");
+                newPosition = Console.ReadLine();
+
+                if (EmployeeAppService.UpdatedOwnAccount(ID, emp.EmployeeID, newPosition))
+                {
+                    EmployeeAppService.UpdateEmployee(empUpdate, newPass, newPosition);
+                    Console.WriteLine($"You changed your role from Admin to: {newPosition}. Logging out...\n");
+                    return false;
+                }
+            }
+
+
             Console.WriteLine();
 
             EmployeeAppService.UpdateEmployee(empUpdate, newPass, newPosition);
@@ -396,6 +417,7 @@ internal class EmpLeaveManagement
         {
             Console.WriteLine("Employee does not exist.\n");
         }
+        return true;
     }
     static bool removeEmployees()
     {
@@ -405,9 +427,8 @@ internal class EmpLeaveManagement
 
         if (EmployeeAppService.checkEmployee(ID))
         {
-            Employee RemovingEmp = EmployeeAppService.GetEmployee(ID);
 
-            if (RemovingEmp.Position == "Admin" && EmployeeAppService.GetAdminCount() <= 1)
+            if (EmployeeAppService.AdminCountCheck(ID))
             {
                 Console.WriteLine("This account is the only admin and cant be removed.\n");
                 return true;
@@ -422,13 +443,12 @@ internal class EmpLeaveManagement
             }
 
             Console.WriteLine("Employee Removed!\n");
-            return true;
         }
         else
         {
             Console.WriteLine("Employee does not exist.\n");
-            return true;
         }
+        return true;
 
     }
 
@@ -461,9 +481,11 @@ internal class EmpLeaveManagement
         }
         else
         {
+            Console.WriteLine("Leave ID\tEmployee ID\tEmployee Name\t\t\tType of Leave\t\tDays\t\tDate \n");
+
             foreach (var leave in leaves)
             {
-                Console.WriteLine($"Employee Name: {leave.Name}, Type of Leave: {leave.TypeOfLeave}, Days: {leave.DaysOfLeave}, Date: {leave.DateOfLeave}");
+                Console.WriteLine($"{leave.LeaveID}\t|\t{leave.EmployeeID}\t|\t{leave.Name}\t|\t{leave.TypeOfLeave}\t|\t{leave.DaysOfLeave}\t|\t{leave.DateOfLeave}");
 
             }
             Console.WriteLine();

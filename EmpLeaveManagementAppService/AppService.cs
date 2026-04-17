@@ -87,7 +87,6 @@ namespace EmpLeaveManagementAppService
             return EmpDataService.EmployeeExists(empID);
         }
 
-
         // ----------------------------------------------------ADD FUNCTIONS----------------------------------------------------
         public int AddEmployee(string fName, string lName, string Password, string Position)
         {
@@ -101,6 +100,19 @@ namespace EmpLeaveManagementAppService
         {
             EmpDataService.UpdateEmployee(empUpdate, newPass, newPosition);
         }
+        
+        public bool UpdatedOwnAccount(int UpdatingEmployeeID, int EmployeeID, string newPosition)
+        {
+            if (newPosition != "Admin" && UpdatingEmployeeID == EmployeeID)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
 
         // ----------------------------------------------------REMOVE FUNCTIONS----------------------------------------------------
         public void RemoveEmployee(int ID)
@@ -112,6 +124,20 @@ namespace EmpLeaveManagementAppService
         public bool RemovedOwnAccount(int RemovingEmployeeID, int EmployeeID)
         {
             if (RemovingEmployeeID == EmployeeID)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public bool AdminCountCheck(int ID)
+        {
+            Employee RemovingEmp = GetEmployee(ID);
+
+            if (RemovingEmp.Position == "Admin" && GetAdminCount() <= 1)
             {
                 return true;
             }
