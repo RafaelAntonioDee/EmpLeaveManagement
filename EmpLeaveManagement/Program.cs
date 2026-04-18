@@ -219,12 +219,11 @@ internal class EmpLeaveManagement
                     Console.WriteLine($"{leave.LeaveID}\t|\t{leave.TypeOfLeave}\t|\t{leave.DaysOfLeave}\t|\t{leave.DateOfLeave}");
                     leaveCount++;
                 }
-                if (leaveCount == 0)
-                {
-                    Console.WriteLine("No data yet.");
-                    break;
-
-                }
+                
+            }
+            if (leaveCount == 0)
+            {
+                Console.WriteLine("No data yet.");
             }
             Console.WriteLine();
         }

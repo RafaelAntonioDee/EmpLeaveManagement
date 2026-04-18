@@ -1,5 +1,74 @@
 {
-  "Employees": [],
-  "FiledLeaves": [],
-  "EmployeesLeaveData": []
+  "Employees": [
+    {
+      "EmployeeID": 100000,
+      "FirstName": "Rafael Antonio",
+      "LastName": "Dee",
+      "Password": "dee123",
+      "Position": "Admin"
+    },
+    {
+      "EmployeeID": 100001,
+      "FirstName": "Indaleen",
+      "LastName": "Quinsayas",
+      "Password": "123",
+      "Position": "Supervisor"
+    },
+    {
+      "EmployeeID": 100002,
+      "FirstName": "John",
+      "LastName": "Doe",
+      "Password": "123",
+      "Position": "Sales"
+    }
+  ],
+  "FiledLeaves": [
+    {
+      "LeaveID": 100000,
+      "EmployeeID": 100000,
+      "Name": "Rafael Antonio Dee",
+      "TypeOfLeave": "Maternity Leave",
+      "DaysOfLeave": 105,
+      "DateOfLeave": "04/26/26"
+    },
+    {
+      "LeaveID": 100001,
+      "EmployeeID": 100000,
+      "Name": "Rafael Antonio Dee",
+      "TypeOfLeave": "Sick Leave",
+      "DaysOfLeave": 5,
+      "DateOfLeave": "04/18/26"
+    },
+    {
+      "LeaveID": 100002,
+      "EmployeeID": 100002,
+      "Name": "John Doe",
+      "TypeOfLeave": "Paternity Leave",
+      "DaysOfLeave": 5,
+      "DateOfLeave": "04/26/26"
+    }
+  ],
+  "EmployeesLeaveData": [
+    {
+      "EmployeeID": 100000,
+      "MaternityLeave": 0,
+      "PaternityLeave": 7,
+      "VacationLeave": 15,
+      "SickLeave": 10
+    },
+    {
+      "EmployeeID": 100001,
+      "MaternityLeave": 105,
+      "PaternityLeave": 7,
+      "VacationLeave": 15,
+      "SickLeave": 15
+    },
+    {
+      "EmployeeID": 100002,
+      "MaternityLeave": 105,
+      "PaternityLeave": 2,
+      "VacationLeave": 15,
+      "SickLeave": 15
+    }
+  ]
 }
