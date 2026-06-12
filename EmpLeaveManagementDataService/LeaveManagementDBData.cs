@@ -259,12 +259,12 @@ namespace EmpLeaveManagementDataService
 
                     break;
                 case "SickLeave":
-                    updateCommand.Parameters.AddWithValue("@newLeaveDays", (empLeaveData.VacationLeave -= Days));
+                    updateCommand.Parameters.AddWithValue("@newLeaveDays", (empLeaveData.SickLeave -= Days));
                     updateCommand.Parameters.AddWithValue("@EmployeeID", empID);
 
                     break;
                 case "VacationLeave":
-                    updateCommand.Parameters.AddWithValue("@newLeaveDays", (empLeaveData.SickLeave -= Days));
+                    updateCommand.Parameters.AddWithValue("@newLeaveDays", (empLeaveData.VacationLeave -= Days));
                     updateCommand.Parameters.AddWithValue("@EmployeeID", empID);
 
                     break;
