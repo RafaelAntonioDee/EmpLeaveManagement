@@ -80,6 +80,10 @@ namespace EmpLeaveManagementAppService
             return adminCount;
         }
 
+        public int GetNewEmployeeID()
+        {
+            return EmpDataService.GetNewEmployeeID();
+        }
 
         // ----------------------------------------------------CHECK FUNCTIONS----------------------------------------------------
         public bool checkEmployee(int empID)
