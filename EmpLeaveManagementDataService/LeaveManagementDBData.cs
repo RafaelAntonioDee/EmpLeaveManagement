@@ -194,7 +194,11 @@ namespace EmpLeaveManagementDataService
                 empLeaveData.SickLeave = int.Parse(reader["SickLeave"].ToString());
             }
 
-
+            if (empLeaveData.EmployeeID <= 0)
+            {
+                sqlConnection.Close();
+                return null;
+            }
             sqlConnection.Close();
             return empLeaveData;
         }
