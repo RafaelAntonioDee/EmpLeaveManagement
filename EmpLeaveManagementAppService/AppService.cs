@@ -7,8 +7,14 @@ namespace EmpLeaveManagementAppService
 {
     public class AppService
     {
-        LeaveManagementDataService EmpDataService = new LeaveManagementDataService(new LeaveManagementDBData());
+        LeaveManagementDataService EmpDataService = new LeaveManagementDataService(new LeaveManagementInMemoryData());
 
+        private readonly EmailService emailService;
+
+        public AppService(EmailService emailService)
+        {
+            this.emailService = emailService;
+        }
         // ----------------------------------------------------FILE LEAVE FUNCTIONS----------------------------------------------------
         public void CalculateAvailableLeaveDays(int empID, String TypeOfLeave, int Days)
         {
@@ -20,6 +26,9 @@ namespace EmpLeaveManagementAppService
             FiledLeave newLeave = new FiledLeave { LeaveID = EmpDataService.GetNewLeaveID(), EmployeeID = emp.EmployeeID, Name = (emp.FirstName + " " + emp.LastName), TypeOfLeave = LeaveType, DaysOfLeave = LeaveDays, DateOfLeave = LeaveDate };
 
             EmpDataService.AddLeave(newLeave, emp);
+
+            var LeaveData = EmpDataService.GetEmployeeLeaveData(emp.EmployeeID);
+            emailService.SendEmail(emp.EmployeeID.ToString(), "sample@gmail.com", LeaveType, LeaveDate);
         }
         public int checkDaysOfLeaveAvailable(string LeaveType, EmployeeLeaveData EmpLeaveData)
         {

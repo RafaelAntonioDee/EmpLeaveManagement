@@ -5,15 +5,27 @@ using System.Reflection.Metadata.Ecma335;
 using System.Security.Principal;
 using EmpLeaveManagementAppModel;
 using EmpLeaveManagementAppService;
+using Microsoft.Extensions.Configuration;
 
 internal class EmpLeaveManagement
 {
-    static AppService EmployeeAppService = new AppService();
+
+    static AppService EmployeeAppService;
     static Employee emp;
 
     // ----------------------------------------------------MAIN----------------------------------------------------
     static void Main(string[] args)
     {
+
+        IConfiguration configuration = new ConfigurationBuilder()
+            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build();
+
+        EmailService emailService = new EmailService(configuration);
+        EmployeeAppService = new AppService(emailService);
+        
+
         bool continueSystem = true;
         while (continueSystem)
         {
